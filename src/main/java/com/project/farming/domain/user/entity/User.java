@@ -1,4 +1,4 @@
-package com.project.farming.domain.user.entity;
+﻿package com.project.farming.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,7 +6,6 @@ import lombok.*;
 @Entity
 @Table(name = "users")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -30,8 +29,25 @@ public class User {
     @Column(length = 20)
     private String oauthProvider;
 
+    @Column(length = 512)
     private String fcmToken;
 
     @Column(length = 20)
     private String subscriptionStatus;
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
+
+    public void updateSubscriptionStatus(String subscriptionStatus) {
+        this.subscriptionStatus = subscriptionStatus;
+    }
 }
