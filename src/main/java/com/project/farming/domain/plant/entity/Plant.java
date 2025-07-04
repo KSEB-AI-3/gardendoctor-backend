@@ -1,12 +1,12 @@
 package com.project.farming.domain.plant.entity;
 
-import com.project.farming.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+
+import java.time.LocalDate;
 
 @Entity
-@Table(name = "plant", indexes = @Index(name = "idx_user_plant", columnList = "user_id"))
+@Table(name = "plant_info")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -16,40 +16,32 @@ public class Plant {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String name;
 
+    private String englishName;
     private String species;
-
-    private LocalDateTime plantedDate;
-
-    @Column(columnDefinition = "TEXT")
-    private String notes;
-
+    private String season;
     private String imageUrl;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = this.updatedAt = LocalDateTime.now();
+        this.createdAt = this.updatedAt = LocalDate.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDate.now();
     }
 
-    public void updatePlant(String name, String species, String notes, String imageUrl) {
+    public void updatePlant(String name, String englishName, String species,
+                            String season, String imageUrl) {
         this.name = name;
+        this.englishName = englishName;
         this.species = species;
-        this.notes = notes;
+        this.season = season;
         this.imageUrl = imageUrl;
     }
 }
