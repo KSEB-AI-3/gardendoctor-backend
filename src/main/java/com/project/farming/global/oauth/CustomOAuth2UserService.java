@@ -56,9 +56,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User user;
         if (optionalUser.isPresent()) {
             user = optionalUser.get();
-            user.setNickname(nickname);
-            user.setProfileImage(profileImage);
-            user.setOauthProvider(oauthProvider);
+            user.updateNickname(nickname);
+            user.updateProfileImage(profileImage);
+            user.updateOauthProvider(oauthProvider);
         } else {
             user = User.builder()
                     .email(email)

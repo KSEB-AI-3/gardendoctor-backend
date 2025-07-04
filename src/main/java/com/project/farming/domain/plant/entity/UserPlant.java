@@ -3,10 +3,11 @@ package com.project.farming.domain.plant.entity;
 import com.project.farming.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "plants", indexes = @Index(name = "idx_user_plant", columnList = "user_id"))
+@Table(name = "user_plants", indexes = @Index(name = "idx_user_plant", columnList = "user_id"))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 public class UserPlant {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long userPlantId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

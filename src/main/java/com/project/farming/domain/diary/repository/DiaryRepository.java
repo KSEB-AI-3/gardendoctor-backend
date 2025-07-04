@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
-    List<Diary> findByUserId(Long userId);
-    List<Diary> findByPlantId(Long plantId);
+    List<Diary> findAllByUserIdOrderByCreatedAtDesc(Long userId);
+
+    List<Diary> findDistinctByUserIdAndDiaryPlantsPlantPlantIdInOrderByCreatedAtDesc(Long userId, List<Long> plantIds);
 }
