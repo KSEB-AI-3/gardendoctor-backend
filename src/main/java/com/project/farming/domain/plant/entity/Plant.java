@@ -14,7 +14,7 @@ import java.time.LocalDate;
 public class Plant {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long plantId;
 
     @Column(unique = true, nullable = false)
     private String name;

@@ -1,32 +1,28 @@
 package com.project.farming.domain.diary.entity;
 
 import com.project.farming.domain.user.entity.User;
-import com.project.farming.domain.plant.entity.Plant;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "diary", indexes = {
-        @Index(name = "idx_user_diary", columnList = "user_id"),
-        @Index(name = "idx_plant_diary", columnList = "plant_id")
-})
+@Table(name = "diaries", indexes = @Index(name = "idx_user_diary", columnList = "user_id"))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class Diary {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long diaryId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plant_id")
-    private Plant plant;
 
     @Column(nullable = false)
     private String title;
@@ -39,6 +35,18 @@ public class Diary {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private boolean watered;
+
+    @Column(nullable = false)
+    private boolean pruned;
+
+    @Column(nullable = false)
+    private boolean fertilized;
+
+    @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DiaryPlant> diaryPlants = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = this.updatedAt = LocalDateTime.now();
@@ -49,9 +57,21 @@ public class Diary {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateDiary(String title, String content, String imageUrl) {
+    public void updateDiary(String title, String content, String imageUrl,
+                            boolean watered, boolean pruned, boolean fertilized) {
         this.title = title;
         this.content = content;
         this.imageUrl = imageUrl;
+        this.watered = watered;
+        this.pruned = pruned;
+        this.fertilized = fertilized;
+    }
+
+    public void addDiaryPlant(DiaryPlant diaryPlant) {
+        diaryPlants.add(diaryPlant);
+    }
+
+    public void clearDiaryPlants() {
+        diaryPlants.clear();
     }
 }

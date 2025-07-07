@@ -1,4 +1,4 @@
-﻿package com.project.farming.domain.user.entity;
+package com.project.farming.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -49,5 +49,9 @@ public class User {
 
     public void updateSubscriptionStatus(String subscriptionStatus) {
         this.subscriptionStatus = subscriptionStatus;
+    }
+
+    public void updateOauthProvider(String oauthProvider) {
+        this.oauthProvider = oauthProvider;
     }
 }
