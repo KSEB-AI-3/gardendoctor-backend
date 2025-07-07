@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class ChatHistory {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long chatHistoryId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

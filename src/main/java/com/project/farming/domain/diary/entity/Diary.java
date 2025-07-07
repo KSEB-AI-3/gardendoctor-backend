@@ -45,7 +45,7 @@ public class Diary {
     private boolean fertilized;
 
     @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DiaryPlant> diaryPlants = new ArrayList<>();
+    private List<DiaryUserPlant> diaryUserPlants = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -57,6 +57,7 @@ public class Diary {
         this.updatedAt = LocalDateTime.now();
     }
 
+    // 일지 내용을 업데이트하는 비즈니스 메서드
     public void updateDiary(String title, String content, String imageUrl,
                             boolean watered, boolean pruned, boolean fertilized) {
         this.title = title;
@@ -67,11 +68,17 @@ public class Diary {
         this.fertilized = fertilized;
     }
 
-    public void addDiaryPlant(DiaryPlant diaryPlant) {
-        diaryPlants.add(diaryPlant);
+    // DiaryUserPlant를 추가하는 비즈니스 메서드 (양방향 관계 설정 포함)
+    public void addDiaryUserPlant(DiaryUserPlant diaryUserPlant) {
+        diaryUserPlants.add(diaryUserPlant);
+        // 양방향 관계의 주인이 아닌 쪽에서도 관계를 설정해 줘야 영속성 컨텍스트가 제대로 동작
+        diaryUserPlant.setDiary(this);
     }
 
-    public void clearDiaryPlants() {
-        diaryPlants.clear();
+    // 모든 DiaryUserPlant 연결을 해제하고 컬렉션을 비우는 비즈니스 메서드
+    public void clearDiaryUserPlants() {
+        // 기존 연결을 끊음 (orphanRemoval=true 설정으로 DB에서 삭제도 처리)
+        diaryUserPlants.forEach(diaryUserPlant -> diaryUserPlant.setDiary(null));
+        diaryUserPlants.clear();
     }
 }
