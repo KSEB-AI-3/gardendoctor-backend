@@ -3,6 +3,7 @@ package com.project.farming.domain.plant.controller;
 import com.project.farming.domain.plant.dto.UserPlantRequestDto;
 import com.project.farming.domain.plant.dto.UserPlantResponseDto;
 import com.project.farming.domain.plant.service.UserPlantService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,7 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("/users/plants")
+@SecurityRequirement(name = "jwtAuth")
+@RequestMapping("/api/users/plants")
 @RequiredArgsConstructor
 @RestController
 public class UserPlantController {

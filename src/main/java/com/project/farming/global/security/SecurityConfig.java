@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/users/profile/**").permitAll()
 
                         // 인증 필요 경로
+                        .requestMatchers("/api/users/plants/**").authenticated()
                         .requestMatchers("/api/diaries/**").authenticated()
                         .requestMatchers("/auth/sign-out").authenticated()
                         .requestMatchers("/api/place/**").authenticated()

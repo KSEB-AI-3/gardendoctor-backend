@@ -8,6 +8,7 @@ import com.project.farming.domain.plant.repository.PlantRepository;
 import com.project.farming.domain.plant.repository.UserPlantRepository;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.domain.user.repository.UserRepository;
+import com.project.farming.global.exception.PlantNotFoundException;
 import com.project.farming.global.exception.UserNotFoundException;
 import com.project.farming.global.exception.UserPlantNotFoundException;
 import jakarta.transaction.Transactional;
@@ -39,7 +40,7 @@ public class UserPlantService {
 
         Plant plant = plantRepository.findByName(request.getPlantName())
                 .orElseGet(() -> plantRepository.getDummyPlant("기타")
-                        .orElseThrow(() -> new UserPlantNotFoundException("DB에 기타 항목이 존재하지 않습니다")));
+                        .orElseThrow(() -> new PlantNotFoundException("DB에 기타 항목이 존재하지 않습니다")));
 
         String plantName = plant.getName();
         if (Objects.equals(plantName, "기타")) {
@@ -73,7 +74,7 @@ public class UserPlantService {
         }
         return foundUserPlants.stream()
                 .map(userPlant -> UserPlantResponseDto.builder()
-                        .userEmail(userPlant.getUser().getEmail())
+                        .userEmail(email)
                         .plantName(userPlant.getPlantName())
                         .nickname(userPlant.getNickname())
                         .plantingPlace(userPlant.getPlantingPlace())
@@ -91,7 +92,7 @@ public class UserPlantService {
         UserPlant foundUserPlant = userPlantRepository.findByUserAndNickname(user, nickname)
                 .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 식물입니다."));
         return UserPlantResponseDto.builder()
-                .userEmail(foundUserPlant.getUser().getEmail())
+                .userEmail(email)
                 .plantName(foundUserPlant.getPlantName())
                 .nickname(foundUserPlant.getNickname())
                 .plantingPlace(foundUserPlant.getPlantingPlace())
