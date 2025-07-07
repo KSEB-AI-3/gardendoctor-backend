@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 public class UserPlantResponseDto {
     private String userEmail;
-    private String PlantName;
+    private String plantName;
     private String nickname;
     private String plantingPlace;
     private LocalDateTime plantedDate;

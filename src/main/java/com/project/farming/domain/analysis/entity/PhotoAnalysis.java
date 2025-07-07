@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class PhotoAnalysis {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long photoAnalysisId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

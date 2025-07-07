@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PhotoAnalysisRepository extends JpaRepository<PhotoAnalysis, Long> {
-    List<PhotoAnalysis> findByUserId(Long userId);
+    List<PhotoAnalysis> findByUser_UserId(Long userId);
 }

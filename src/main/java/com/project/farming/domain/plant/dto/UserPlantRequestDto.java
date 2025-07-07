@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 public class UserPlantRequestDto {
     private String userEmail;
-    private String PlantName;
+    private String plantName;
 
     @NotBlank(message = "식물의 이름을 입력해주세요.")
     @Size(max = 20, message = "식물 이름은 최대 20글자까지 입력할 수 있습니다.")

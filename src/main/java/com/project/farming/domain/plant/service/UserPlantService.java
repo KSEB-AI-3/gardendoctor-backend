@@ -8,7 +8,6 @@ import com.project.farming.domain.plant.repository.PlantRepository;
 import com.project.farming.domain.plant.repository.UserPlantRepository;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.domain.user.repository.UserRepository;
-import com.project.farming.global.exception.PlantNotFoundException;
 import com.project.farming.global.exception.UserNotFoundException;
 import com.project.farming.global.exception.UserPlantNotFoundException;
 import jakarta.transaction.Transactional;
@@ -40,7 +39,7 @@ public class UserPlantService {
 
         Plant plant = plantRepository.findByName(request.getPlantName())
                 .orElseGet(() -> plantRepository.getDummyPlant("기타")
-                        .orElseThrow(() -> new PlantNotFoundException("DB에 기타 항목이 존재하지 않습니다")));
+                        .orElseThrow(() -> new UserPlantNotFoundException("DB에 기타 항목이 존재하지 않습니다")));
 
         String plantName = plant.getName();
         if (Objects.equals(plantName, "기타")) {
@@ -75,7 +74,7 @@ public class UserPlantService {
         return foundUserPlants.stream()
                 .map(userPlant -> UserPlantResponseDto.builder()
                         .userEmail(userPlant.getUser().getEmail())
-                        .PlantName(userPlant.getPlantName())
+                        .plantName(userPlant.getPlantName())
                         .nickname(userPlant.getNickname())
                         .plantingPlace(userPlant.getPlantingPlace())
                         .plantedDate(userPlant.getPlantedDate())
@@ -93,7 +92,7 @@ public class UserPlantService {
                 .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 식물입니다."));
         return UserPlantResponseDto.builder()
                 .userEmail(foundUserPlant.getUser().getEmail())
-                .PlantName(foundUserPlant.getPlantName())
+                .plantName(foundUserPlant.getPlantName())
                 .nickname(foundUserPlant.getNickname())
                 .plantingPlace(foundUserPlant.getPlantingPlace())
                 .plantedDate(foundUserPlant.getPlantedDate())
@@ -128,7 +127,7 @@ public class UserPlantService {
                 .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 식물입니다."));
         userPlantRepository.delete(userPlant);
     }
-    
+
     // 식물별 일지 작성 수 반환하는 기능 추가
     // 등록된 식물의 정보를 가져오는 기능 추가
 }

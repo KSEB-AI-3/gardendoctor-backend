@@ -30,7 +30,8 @@ public class NotificationService {
      * 사용자 알림 전체 조회 (최신순)
      */
     public List<NotificationResponseDto> getUserNotifications(Long userId) {
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
+        // 변경된 Repository 메서드 호출
+        return notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(NotificationResponseDto::from)
                 .collect(Collectors.toList());
@@ -51,6 +52,7 @@ public class NotificationService {
      */
     @Transactional
     public void deleteAllUserNotifications(Long userId) {
+        // 변경된 Repository 메서드 호출
         notificationRepository.deleteByUserId(userId);
     }
 
