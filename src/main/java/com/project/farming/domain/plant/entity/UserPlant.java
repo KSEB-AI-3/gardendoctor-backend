@@ -3,7 +3,6 @@ package com.project.farming.domain.plant.entity;
 import com.project.farming.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,10 +21,14 @@ public class UserPlant {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plant_id")
-    private Plant plant;
+    @JoinColumn(name = "plant_id", nullable = false)
+    private Plant plant; // 등록된 식물
 
+    private String plantName; // 식물 이름(등록된 식물, 직접 입력)
+
+    @Column(nullable = false, length = 20)
     private String nickname;
+
     private String plantingPlace;
     private LocalDateTime plantedDate;
 
@@ -46,19 +49,11 @@ public class UserPlant {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateNickname(String nickname) {
+    public void updateUserPlant(String nickname, String plantingPlace,
+                                String notes, String imageUrl) {
         this.nickname = nickname;
-    }
-
-    public void updatePlantingPlace(String plantingPlace) {
         this.plantingPlace = plantingPlace;
-    }
-
-    public void updateNotes(String notes) {
         this.notes = notes;
-    }
-
-    public void updateImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
 }
