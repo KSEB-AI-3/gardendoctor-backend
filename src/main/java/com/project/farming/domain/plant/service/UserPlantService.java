@@ -65,7 +65,10 @@ public class UserPlantService {
     }
 
     public List<UserPlantResponseDto> findAllUserPlants(String email) {
-        List<UserPlant> foundUserPlants = userPlantRepository.findAllByEmailOrderByNickname(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        List<UserPlant> foundUserPlants = userPlantRepository.findByUserOrderByNicknameAsc(user);
         if (foundUserPlants.isEmpty()) {
             throw new UserPlantNotFoundException("등록된 식물이 없습니다.");
         }
@@ -83,7 +86,10 @@ public class UserPlantService {
     }
 
     public UserPlantResponseDto findUserPlantByName(String email, String nickname) {
-        UserPlant foundUserPlant = userPlantRepository.findByEmailAndNickname(email, nickname)
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        UserPlant foundUserPlant = userPlantRepository.findByUserAndNickname(user, nickname)
                 .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 식물입니다."));
         return UserPlantResponseDto.builder()
                 .userEmail(foundUserPlant.getUser().getEmail())
@@ -99,7 +105,10 @@ public class UserPlantService {
     @Transactional
     public UserPlantResponseDto updateUserPlant(
             String email, String nickname, UserPlantRequestDto request) {
-        UserPlant userPlant = userPlantRepository.findByEmailAndNickname(email, nickname)
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        UserPlant userPlant = userPlantRepository.findByUserAndNickname(user, nickname)
                 .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 식물입니다."));
         userPlant.updateUserPlant(request.getNickname(), request.getPlantingPlace(),
                 request.getNotes(), request.getImageUrl());
@@ -112,7 +121,10 @@ public class UserPlantService {
 
     @Transactional
     public void deleteUserPlant(String email, String nickname) {
-        UserPlant userPlant = userPlantRepository.findByEmailAndNickname(email, nickname)
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        UserPlant userPlant = userPlantRepository.findByUserAndNickname(user, nickname)
                 .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 식물입니다."));
         userPlantRepository.delete(userPlant);
     }

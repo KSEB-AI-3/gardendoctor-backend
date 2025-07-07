@@ -14,6 +14,6 @@ public interface PlantRepository extends JpaRepository<Plant, Long> {
     @Query(value = "SELECT * FROM plant_info WHERE name = :name LIMIT 1", nativeQuery = true)
     Optional<Plant> getDummyPlant(@Param("name") String name);
 
-    List<Plant> findAllByOrderByName();
+    List<Plant> findAllByOrderByNameAsc();
     Optional<Plant> findByName(String name);
 }

@@ -40,7 +40,7 @@ public class PlantService {
     }
 
     public List<PlantResponseDto> findAllPlants() {
-        List<Plant> foundPlants = plantRepository.findAllByOrderByName();
+        List<Plant> foundPlants = plantRepository.findAllByOrderByNameAsc();
         if (foundPlants.isEmpty()) {
             throw new PlantNotFoundException("등록된 식물이 없습니다.");
         }
