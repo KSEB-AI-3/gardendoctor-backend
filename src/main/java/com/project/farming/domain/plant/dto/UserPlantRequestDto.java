@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class UserPlantRequestDto {
-    private String userEmail;
+    private Long userId;
     private String plantName;
 
     @NotBlank(message = "식물의 이름을 입력해주세요.")

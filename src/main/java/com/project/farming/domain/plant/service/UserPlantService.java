@@ -31,11 +31,11 @@ public class UserPlantService {
 
     @Transactional
     public UserPlantResponseDto saveUserPlant(UserPlantRequestDto request) {
-        User user = userRepository.findByEmail(request.getUserEmail())
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + request.getUserEmail()));
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + request.getUserId()));
 
         if (userPlantRepository.existsByUserAndNickname(user, request.getNickname())) {
-            throw new IllegalArgumentException("이미 등록된 식물입니다.");
+            throw new IllegalArgumentException("이미 등록된 사용자 식물입니다: " + request.getNickname());
         }
 
         Plant plant = plantRepository.findByName(request.getPlantName())
@@ -60,39 +60,39 @@ public class UserPlantService {
         UserPlant savedUserPlant = userPlantRepository.save(newUserPlant);
         return UserPlantResponseDto.builder()
                 .message("해당 식물이 성공적으로 등록되었습니다.")
+                .plantName(savedUserPlant.getPlantName())
                 .nickname(savedUserPlant.getNickname())
                 .build();
     }
 
-    public List<UserPlantResponseDto> findAllUserPlants(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + email));
+    public List<UserPlantResponseDto> findAllUserPlants(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
 
         List<UserPlant> foundUserPlants = userPlantRepository.findByUserOrderByNicknameAsc(user);
         if (foundUserPlants.isEmpty()) {
-            throw new UserPlantNotFoundException("등록된 식물이 없습니다.");
+            throw new UserPlantNotFoundException("등록된 사용자 식물이 없습니다.");
         }
         return foundUserPlants.stream()
                 .map(userPlant -> UserPlantResponseDto.builder()
-                        .userEmail(email)
+                        .userId(userId)
                         .plantName(userPlant.getPlantName())
                         .nickname(userPlant.getNickname())
                         .plantingPlace(userPlant.getPlantingPlace())
                         .plantedDate(userPlant.getPlantedDate())
-                        .notes(userPlant.getNotes())
                         .imageUrl(userPlant.getImageUrl())
                         .build())
                 .collect(Collectors.toList());
     }
 
-    public UserPlantResponseDto findUserPlantByName(String email, String nickname) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + email));
+    public UserPlantResponseDto findUserPlant(Long userId, Long userPlantId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
 
-        UserPlant foundUserPlant = userPlantRepository.findByUserAndNickname(user, nickname)
-                .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 식물입니다."));
+        UserPlant foundUserPlant = userPlantRepository.findByUserAndUserPlantId(user, userPlantId)
+                .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 사용자 식물입니다: " + userPlantId));
         return UserPlantResponseDto.builder()
-                .userEmail(email)
+                .userId(userId)
                 .plantName(foundUserPlant.getPlantName())
                 .nickname(foundUserPlant.getNickname())
                 .plantingPlace(foundUserPlant.getPlantingPlace())
@@ -104,28 +104,29 @@ public class UserPlantService {
 
     @Transactional
     public UserPlantResponseDto updateUserPlant(
-            String email, String nickname, UserPlantRequestDto request) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + email));
+            Long userId, Long userPlantId, UserPlantRequestDto request) {
 
-        UserPlant userPlant = userPlantRepository.findByUserAndNickname(user, nickname)
-                .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 식물입니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+        UserPlant userPlant = userPlantRepository.findByUserAndUserPlantId(user, userPlantId)
+                .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 사용자 식물입니다: " + userPlantId));
         userPlant.updateUserPlant(request.getNickname(), request.getPlantingPlace(),
                 request.getNotes(), request.getImageUrl());
         UserPlant updatedUserPlant = userPlantRepository.save(userPlant);
         return UserPlantResponseDto.builder()
                 .message("해당 식물 정보가 성공적으로 수정되었습니다.")
+                .plantName(updatedUserPlant.getPlantName())
                 .nickname(updatedUserPlant.getNickname())
                 .build();
     }
 
     @Transactional
-    public void deleteUserPlant(String email, String nickname) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + email));
+    public void deleteUserPlant(Long userId, Long userPlantId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
 
-        UserPlant userPlant = userPlantRepository.findByUserAndNickname(user, nickname)
-                .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 식물입니다."));
+        UserPlant userPlant = userPlantRepository.findByUserAndUserPlantId(user, userPlantId)
+                .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 사용자 식물입니다: " + userPlantId));
         userPlantRepository.delete(userPlant);
     }
 

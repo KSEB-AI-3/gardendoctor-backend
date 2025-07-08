@@ -6,7 +6,12 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_plants", indexes = @Index(name = "idx_user_plant", columnList = "user_id"))
+@Table(
+        name = "user_plants",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "nickname"})
+        },
+        indexes = @Index(name = "idx_user_plant", columnList = "user_id"))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

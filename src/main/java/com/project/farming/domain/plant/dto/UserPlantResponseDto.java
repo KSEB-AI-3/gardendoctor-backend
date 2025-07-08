@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 @Builder
 public class UserPlantResponseDto {
-    private String userEmail;
+    private Long userId;
     private String plantName;
     private String nickname;
     private String plantingPlace;
