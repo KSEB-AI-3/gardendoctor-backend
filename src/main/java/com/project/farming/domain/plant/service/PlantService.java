@@ -23,7 +23,7 @@ public class PlantService {
     @Transactional
     public PlantResponseDto savePlant(PlantRequestDto request) {
         if (plantRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException("이미 존재하는 식물입니다.");
+            throw new IllegalArgumentException("이미 존재하는 식물입니다: " + request.getName());
         }
         Plant newPlant = Plant.builder()
                 .name(request.getName())
@@ -46,6 +46,7 @@ public class PlantService {
         }
         return foundPlants.stream()
                 .map(plant -> PlantResponseDto.builder()
+                        .plantId(plant.getPlantId())
                         .name(plant.getName())
                         .englishName(plant.getEnglishName())
                         .species(plant.getSpecies())
@@ -55,10 +56,11 @@ public class PlantService {
                 .collect(Collectors.toList());
     }
 
-    public PlantResponseDto findPlantByName(String name) {
-        Plant foundPlant = plantRepository.findByName(name)
-                .orElseThrow(() -> new PlantNotFoundException("해당 식물이 존재하지 않습니다: " + name));
+    public PlantResponseDto findPlant(Long plantId) {
+        Plant foundPlant = plantRepository.findById(plantId)
+                .orElseThrow(() -> new PlantNotFoundException("해당 식물이 존재하지 않습니다: " + plantId));
         return PlantResponseDto.builder()
+                .plantId(foundPlant.getPlantId())
                 .name(foundPlant.getName())
                 .englishName(foundPlant.getEnglishName())
                 .species(foundPlant.getSpecies())
@@ -68,9 +70,9 @@ public class PlantService {
     }
 
     @Transactional
-    public PlantResponseDto updatePlant(String name, PlantRequestDto request) {
-        Plant plant = plantRepository.findByName(name)
-                .orElseThrow(() -> new PlantNotFoundException("해당 식물이 존재하지 않습니다: " + name));
+    public PlantResponseDto updatePlant(Long plantId, PlantRequestDto request) {
+        Plant plant = plantRepository.findById(plantId)
+                .orElseThrow(() -> new PlantNotFoundException("해당 식물이 존재하지 않습니다: " + plantId));
         plant.updatePlant(request.getName(), request.getEnglishName(),
                 request.getSpecies(), request.getSeason(), request.getImageUrl());
         Plant updatedPlant = plantRepository.save(plant);
@@ -81,9 +83,9 @@ public class PlantService {
     }
 
     @Transactional
-    public void deletePlant(String name) {
-        Plant plant = plantRepository.findByName(name)
-                .orElseThrow(() -> new PlantNotFoundException("해당 식물이 존재하지 않습니다: " + name));
+    public void deletePlant(Long plantId) {
+        Plant plant = plantRepository.findById(plantId)
+                .orElseThrow(() -> new PlantNotFoundException("해당 식물이 존재하지 않습니다: " + plantId));
         plantRepository.delete(plant);
     }
 }

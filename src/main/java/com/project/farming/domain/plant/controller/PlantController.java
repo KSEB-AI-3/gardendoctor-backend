@@ -3,6 +3,8 @@ package com.project.farming.domain.plant.controller;
 import com.project.farming.domain.plant.dto.PlantRequestDto;
 import com.project.farming.domain.plant.dto.PlantResponseDto;
 import com.project.farming.domain.plant.service.PlantService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Plant API", description = "AI 기능을 사용할 수 있는 식물 관련 API")
 @RequestMapping("/api/plants")
 @RequiredArgsConstructor
 @RestController
@@ -18,29 +21,34 @@ public class PlantController {
     private final PlantService plantService;
 
     @PostMapping
+    @Operation(summary = "식물 추가", description = "AI 기능을 사용할 수 있는 식물을 추가하는 기능")
     public ResponseEntity<PlantResponseDto> createPlant(@RequestBody PlantRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(plantService.savePlant(request));
     }
 
     @GetMapping
+    @Operation(summary = "식물 목록 조회", description = "AI 기능을 사용할 수 있는 모든 식물을 이름순으로 조회할 수 있는 기능")
     public ResponseEntity<List<PlantResponseDto>> getAllPlants() {
         return ResponseEntity.ok(plantService.findAllPlants());
     }
 
     @GetMapping("/{name}")
-    public ResponseEntity<PlantResponseDto> getPlant(@PathVariable String name) {
-        return ResponseEntity.ok(plantService.findPlantByName(name));
+    @Operation(summary = "식물 정보 조회", description = "AI 기능을 사용할 수 있는 식물 1개의 정보를 조회할 수 있는 기능")
+    public ResponseEntity<PlantResponseDto> getPlant(@PathVariable Long plantId) {
+        return ResponseEntity.ok(plantService.findPlant(plantId));
     }
 
     @PutMapping("/{name}")
-    public ResponseEntity<PlantResponseDto> updatePlant(@PathVariable String name, @RequestBody PlantRequestDto request) {
-        return ResponseEntity.ok(plantService.updatePlant(name, request));
+    @Operation(summary = "식물 정보 수정", description = "AI 기능을 사용할 수 있는 식물 1개의 정보를 수정하는 기능")
+    public ResponseEntity<PlantResponseDto> updatePlant(@PathVariable Long plantId, @RequestBody PlantRequestDto request) {
+        return ResponseEntity.ok(plantService.updatePlant(plantId, request));
     }
 
     @DeleteMapping("/{name}")
-    public ResponseEntity<PlantResponseDto> deletePlant(@PathVariable String name) {
-        plantService.deletePlant(name);
+    @Operation(summary = "식물 정보 삭제", description = "AI 기능을 사용할 수 있는 식물 1개의 정보를 삭제하는 기능")
+    public ResponseEntity<PlantResponseDto> deletePlant(@PathVariable Long plantId) {
+        plantService.deletePlant(plantId);
         return ResponseEntity.noContent().build();
     }
 }

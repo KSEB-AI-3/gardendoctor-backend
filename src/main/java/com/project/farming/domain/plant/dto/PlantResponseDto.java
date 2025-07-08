@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class PlantResponseDto {
+    private Long plantId;
     private String name;
     private String englishName;
     private String species;

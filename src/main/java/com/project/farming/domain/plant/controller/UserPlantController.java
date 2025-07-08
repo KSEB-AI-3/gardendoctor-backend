@@ -31,7 +31,7 @@ public class UserPlantController {
     }
 
     @GetMapping("/{userId}")
-    @Operation(summary = "사용자 식물 목록 조회", description = "사용자가 키우는 모든 식물들을 이름순으로 조회할 수 있는 기능")
+    @Operation(summary = "사용자 식물 목록 조회", description = "사용자가 키우는 모든 식물을 별명순으로 조회할 수 있는 기능")
     public ResponseEntity<List<UserPlantResponseDto>> getAllUserPlants(@PathVariable Long userId) {
         return ResponseEntity.ok(userPlantService.findAllUserPlants(userId));
     }
