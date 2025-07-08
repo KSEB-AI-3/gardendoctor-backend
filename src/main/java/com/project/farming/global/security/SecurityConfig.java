@@ -8,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager; // 이 import를 추가하세요
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration; // 이 import를 추가하세요
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,16 +20,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor // Lombok이 모든 final 필드를 주입합니다.
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
-    private final CustomUserDetailsService customUserDetailsService; // 주입되지만 여기서는 직접 사용되지 않음; AuthenticationManager가 사용
+    private final CustomUserDetailsService customUserDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
-
-    // JwtAuthenticationFilter는 이미 @Component로 관리되므로 여기서 별도의 @Bean 메서드로 만들 필요가 없습니다.
-    // 스프링이 자동으로 빈으로 등록하고 주입해 줍니다.
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,27 +36,53 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        // /auth 경로에서 인증 없이 접근 허용할 API들 추가
+                        // --- 1. 인증 없이 허용 (permitAll()) ---
+
+                        // AuthController
+                        // 회원가입, 로그인, 토큰 재발급은 인증 없이 접근 가능
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/token/refresh").permitAll()
 
-                        // 기존에 열려있던 경로들
-                        .requestMatchers("/users/sign-in").permitAll()
-                        .requestMatchers("/users/sign-up").permitAll()
-                        .requestMatchers("/api/notify/**").permitAll()
-                        .requestMatchers("/api/alarms/**").permitAll()
-                        .requestMatchers("/users/profile/**").permitAll()
+                        // OAuth2 로그인 관련 모든 경로 (리다이렉션 포함)
+                        .requestMatchers("/oauth2/**").permitAll()
 
-                        // 인증 필요 경로
-                        .requestMatchers("/api/user-plants/**").authenticated()
+                        // 기존에 열려있던 경로들 (현재 컨트롤러 코드에는 없지만, 이전 기록에 있었으므로 혹시 몰라 유지)
+                        .requestMatchers("/users/sign-in").permitAll() // ⭐ 만약 AuthController에서 처리 안하면 제거하세요.
+                        .requestMatchers("/users/sign-up").permitAll() // ⭐ 만약 AuthController에서 처리 안하면 제거하세요.
+                        .requestMatchers("/api/notify/test").permitAll() // 특정 알림 테스트 API
+
+                        // Swagger UI 관련 (개발 및 테스트 편의를 위해)
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**",  "/swagger-ui.html").permitAll()
+
+
+                        // --- 2. 인증 필요 (authenticated()) ---
+
+                        // AuthController
+                        // 로그아웃, 현재 사용자 정보 조회는 인증 필요
+                        .requestMatchers("/auth/logout").authenticated() // AuthController에 명시된 그대로 '/auth/logout'
+                        .requestMatchers("/auth/user/me").authenticated()
+
+                        // PlantController (모든 엔드포인트)
+                        // PlantController는 @SecurityRequirement가 없지만, 모든 CRUD는 인증 필요하다고 가정
+                        .requestMatchers("/plants/**").authenticated()
+
+                        // UserPlantController (모든 엔드포인트)
+                        // UserPlantController는 @SecurityRequirement가 없지만, 모든 CRUD는 인증 필요하다고 가정
+                        .requestMatchers("/users/plants/**").authenticated()
+
+                        // DiaryController (모든 엔드포인트)
+                        // DiaryController는 @Tag 및 @SecurityRequirement(name = "jwtAuth")가 있으므로 모두 인증 필요
+                        .requestMatchers("/api/users/plants/**").authenticated()
                         .requestMatchers("/api/diaries/**").authenticated()
-                        .requestMatchers("/auth/sign-out").authenticated()
-                        .requestMatchers("/api/place/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/users/fcm-token").authenticated()
-                        .requestMatchers("/users/test").hasRole("USER")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
+                        // 기타 인증 필요 경로 (제공해주신 기존 설정 유지)
+                        .requestMatchers("/api/notify/**").authenticated() // 알림 관련 (테스트용 제외)
+                        .requestMatchers("/api/alarms/**").authenticated() // 알람 관련
+                        .requestMatchers("/users/profile/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/users/fcm-token").authenticated()
+
+                        // 그 외 모든 요청은 인증 필요 (기본 보안 정책)
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -75,13 +98,11 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt를 기본으로 사용하는 DelegatingPasswordEncoder를 사용하여 비밀번호를 안전하게 해싱합니다.
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        // AuthenticationManager를 빈으로 노출하여 수동 인증 (예: AuthService)에 사용할 수 있도록 합니다.
         return authenticationConfiguration.getAuthenticationManager();
     }
 }
