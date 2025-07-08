@@ -33,19 +33,19 @@ public class PlantController {
         return ResponseEntity.ok(plantService.findAllPlants());
     }
 
-    @GetMapping("/{name}")
+    @GetMapping("/{plantId}")
     @Operation(summary = "식물 정보 조회", description = "AI 기능을 사용할 수 있는 식물 1개의 정보를 조회할 수 있는 기능")
     public ResponseEntity<PlantResponseDto> getPlant(@PathVariable Long plantId) {
         return ResponseEntity.ok(plantService.findPlant(plantId));
     }
 
-    @PutMapping("/{name}")
+    @PutMapping("/{plantId}")
     @Operation(summary = "식물 정보 수정", description = "AI 기능을 사용할 수 있는 식물 1개의 정보를 수정하는 기능")
     public ResponseEntity<PlantResponseDto> updatePlant(@PathVariable Long plantId, @RequestBody PlantRequestDto request) {
         return ResponseEntity.ok(plantService.updatePlant(plantId, request));
     }
 
-    @DeleteMapping("/{name}")
+    @DeleteMapping("/{plantId}")
     @Operation(summary = "식물 정보 삭제", description = "AI 기능을 사용할 수 있는 식물 1개의 정보를 삭제하는 기능")
     public ResponseEntity<PlantResponseDto> deletePlant(@PathVariable Long plantId) {
         plantService.deletePlant(plantId);
