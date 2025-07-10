@@ -73,7 +73,7 @@ Pull Request를 생성합니다.
 ✉️ 연락
 프로젝트 관련 문의는 이메일 또는 깃허브 이슈를 통해 연락해 주세요.
 
-Email: your-email@domain.com
+Email: - - 
 
 GitHub Issues: Issues
 
