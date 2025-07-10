@@ -1,5 +1,7 @@
 package com.project.farming.domain.plant.service;
 
+import com.project.farming.domain.farm.entity.FarmInfo;
+import com.project.farming.domain.farm.repository.FarmInfoRepository;
 import com.project.farming.domain.plant.dto.UserPlantRequestDto;
 import com.project.farming.domain.plant.dto.UserPlantResponseDto;
 import com.project.farming.domain.plant.entity.Plant;
@@ -8,6 +10,7 @@ import com.project.farming.domain.plant.repository.PlantRepository;
 import com.project.farming.domain.plant.repository.UserPlantRepository;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.domain.user.repository.UserRepository;
+import com.project.farming.global.exception.FarmNotFoundException;
 import com.project.farming.global.exception.PlantNotFoundException;
 import com.project.farming.global.exception.UserNotFoundException;
 import com.project.farming.global.exception.UserPlantNotFoundException;
@@ -28,6 +31,7 @@ public class UserPlantService {
     private final UserPlantRepository userPlantRepository;
     private final UserRepository userRepository;
     private final PlantRepository plantRepository;
+    private final FarmInfoRepository farmInfoRepository;
 
     @Transactional
     public UserPlantResponseDto saveUserPlant(UserPlantRequestDto request) {
@@ -38,17 +42,29 @@ public class UserPlantService {
         }
         Plant plant = plantRepository.findByName(request.getPlantName())
                 .orElseGet(() -> plantRepository.getDummyPlant("기타")
-                        .orElseThrow(() -> new PlantNotFoundException("DB에 기타 항목이 존재하지 않습니다")));
+                        .orElseThrow(() -> new PlantNotFoundException("DB에 '기타' 항목이 존재하지 않습니다.")));
         String plantName = plant.getName();
         if (Objects.equals(plantName, "기타")) {
             plantName = request.getPlantName();
         }
+        FarmInfo farm = farmInfoRepository.findByGardenUniqueId(request.getGardenUniqueId())
+                .orElseGet(() -> farmInfoRepository.getDummyFarm("기타(Other)")
+                        .orElseThrow(() -> new FarmNotFoundException("DB에 '기타(Other)' 항목이 존재하지 않습니다.")));
+        String plantingPlace = farm.getName();
+        if (Objects.equals(plantingPlace, "기타(Other)")) {
+            plantingPlace = request.getPlantingPlace();
+        }
+        else if (Objects.equals(plantingPlace, "N/A")) {
+            plantingPlace = farm.getLotNumberAddress();
+        }
+
         UserPlant newUserPlant = UserPlant.builder()
                 .user(user)
                 .plant(plant)
                 .plantName(plantName)
                 .nickname(request.getNickname())
-                .plantingPlace(request.getPlantingPlace())
+                .farm(farm)
+                .plantingPlace(plantingPlace)
                 .plantedDate(request.getPlantedDate())
                 .notes(request.getNotes())
                 .imageUrl(request.getImageUrl())

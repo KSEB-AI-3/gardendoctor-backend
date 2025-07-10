@@ -29,7 +29,7 @@ public class FarmController {
     }
 
     @GetMapping
-    @Operation(summary = "텃밭 목록 조회", description = "텃밭 정보를 고유번호순으로 조회할 수 있는 기능")
+    @Operation(summary = "텃밭 목록 조회", description = "모든 텃밭 정보를 고유번호순으로 조회할 수 있는 기능")
     public ResponseEntity<List<FarmResponseDto>> getAllFarms() {
         return ResponseEntity.ok(farmService.findAllFarms());
     }
@@ -51,5 +51,13 @@ public class FarmController {
     public ResponseEntity<FarmResponseDto> deleteFarm(@PathVariable Long farmId) {
         farmService.deleteFarm(farmId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "주변 텃밭 정보 조회", description = "사용자의 현재 위치를 기반으로 주변의 모든 텃밭 정보를 조회할 수 있는 기능")
+    public ResponseEntity<List<FarmResponseDto>> getFarmsByLocation(
+            @RequestParam Double latitude, @RequestParam Double longitude,
+            @RequestParam(defaultValue = "5") Double radius) {
+        return ResponseEntity.ok(farmService.findFarmsByLocation(latitude, longitude, radius));
     }
 }

@@ -42,6 +42,8 @@ public class FarmService {
         return FarmResponseDto.builder()
                 .message("해당 텃밭이 성공적으로 등록되었습니다.")
                 .gardenUniqueId(savedFarm.getGardenUniqueId())
+                .operator(savedFarm.getOperator())
+                .name(savedFarm.getName())
                 .build();
     }
     
@@ -94,6 +96,8 @@ public class FarmService {
         return FarmResponseDto.builder()
                 .message("해당 텃밭 정보가 성공적으로 수정되었습니다.")
                 .gardenUniqueId(updatedFarm.getGardenUniqueId())
+                .operator(updatedFarm.getOperator())
+                .name(updatedFarm.getName())
                 .build();
     }
 
@@ -102,5 +106,17 @@ public class FarmService {
         FarmInfo farm = farmInfoRepository.findById(farmId)
                 .orElseThrow(() -> new FarmNotFoundException("해당 텃밭이 존재하지 않습니다: " + farmId));
         farmInfoRepository.delete(farm);
+    }
+
+    public List<FarmResponseDto> findFarmsByLocation(Double latitude, Double longitude, Double radius) {
+        log.info("현재 위치: {}, {} / 반경: {}", latitude, longitude, radius);
+        // 수정 예정
+        List<FarmInfo> foundFarms = farmInfoRepository.findAll();
+        if (foundFarms.isEmpty()) {
+            throw new FarmNotFoundException("등록된 텃밭이 없습니다.");
+        }
+        return foundFarms.stream()
+                .map(farm -> FarmResponseDto.builder().build())
+                .collect(Collectors.toList());
     }
 }

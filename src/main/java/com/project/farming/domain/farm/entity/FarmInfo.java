@@ -20,10 +20,7 @@ public class FarmInfo {
     private Integer gardenUniqueId; // 텃밭 고유번호
 
     private String operator; // 운영주체
-
-    @Column(nullable = false)
     private String name;
-
     private String roadNameAddress; // 도로명주소
     private String lotNumberAddress; // 지번주소
     private String facilities;
