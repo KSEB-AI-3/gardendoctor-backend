@@ -5,7 +5,7 @@ import com.project.farming.domain.farm.dto.FarmResponseDto;
 import com.project.farming.domain.farm.entity.FarmInfo;
 import com.project.farming.domain.farm.repository.FarmInfoRepository;
 import com.project.farming.global.exception.FarmNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +26,17 @@ public class FarmService {
             throw new IllegalArgumentException("이미 존재하는 텃밭입니다: " + request.getGardenUniqueId());
         }
         FarmInfo newFarm = FarmInfo.builder()
+                .gardenUniqueId(request.getGardenUniqueId())
+                .operator(request.getOperator())
+                .name(request.getName())
+                .roadNameAddress(request.getRoadNameAddress())
+                .lotNumberAddress(request.getLotNumberAddress())
+                .facilities(request.getFacilities())
+                .available(request.getAvailable())
+                .contact(request.getContact())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .imageUrl(request.getImageUrl())
                 .build();
         FarmInfo savedFarm = farmInfoRepository.save(newFarm);
         return FarmResponseDto.builder()

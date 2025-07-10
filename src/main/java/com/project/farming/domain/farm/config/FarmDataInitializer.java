@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.text.DecimalFormat;
@@ -29,6 +30,7 @@ public class FarmDataInitializer implements CommandLineRunner {
 
     private final FarmInfoRepository farmInfoRepository;
 
+    @Transactional
     @Override
     public void run(String... args) throws Exception {
         if (farmInfoRepository.count() == 0) {

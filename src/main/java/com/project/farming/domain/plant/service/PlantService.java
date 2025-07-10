@@ -5,7 +5,7 @@ import com.project.farming.domain.plant.dto.PlantResponseDto;
 import com.project.farming.domain.plant.entity.Plant;
 import com.project.farming.domain.plant.repository.PlantRepository;
 import com.project.farming.global.exception.PlantNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

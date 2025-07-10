@@ -11,7 +11,7 @@ import com.project.farming.domain.user.repository.UserRepository;
 import com.project.farming.global.exception.PlantNotFoundException;
 import com.project.farming.global.exception.UserNotFoundException;
 import com.project.farming.global.exception.UserPlantNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
