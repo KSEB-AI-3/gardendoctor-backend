@@ -8,11 +8,11 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    // OAuth Provider와 해당 Provider의 고유 ID로 사용자 조회
+
     Optional<User> findByOauthProviderAndOauthId(String oauthProvider, String oauthId);
-
-    // ⭐ 이메일로 사용자 조회 (일반 로그인 및 이메일 중복 검사용)
     Optional<User> findByEmail(String email);
+    //Optional<User> findById(Long userId); // User 엔티티의 PK가 userId
+    Boolean existsByEmail(String email); // AuthService.registerUser에서 사용
 
-    boolean existsByEmail(String email);
+    Optional<Object> findByUserId(Long userId);
 }

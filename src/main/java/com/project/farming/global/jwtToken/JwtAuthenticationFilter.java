@@ -24,7 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException { // IOException이 throws에 포함되어 있음
+            throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
         String token = null;
@@ -36,11 +36,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 토큰이 존재하고, 유효하며, 블랙리스트에 없는 경우에만 인증을 진행합니다.
         if (token != null && jwtTokenProvider.validateToken(token) && !jwtBlacklistService.isBlacklisted(token)) {
-            String userId = jwtTokenProvider.getUserIdFromToken(token); // 토큰에서 사용자 식별자 (이메일) 추출
+            // ⭐ 토큰에서 사용자 식별자 (userId - Long 타입) 추출
+            Long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-            // 추출된 userId를 사용하여 CustomUserDetailsService를 통해 UserDetails를 로드합니다.
+            // 추출된 userId를 String으로 변환하여 CustomUserDetailsService를 통해 UserDetails를 로드합니다.
             // UserDetails에는 사용자의 권한 정보가 포함됩니다.
-            UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(String.valueOf(userId)); // ⭐ Long -> String 변환
 
             // UserDetails와 권한 정보를 사용하여 UsernamePasswordAuthenticationToken을 생성합니다.
             // 두 번째 인자는 자격 증명(비밀번호)이지만, JWT 인증에서는 null로 설정합니다.

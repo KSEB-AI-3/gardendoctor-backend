@@ -23,13 +23,15 @@ public class PhotoAnalysis {
     @Column(nullable = false)
     private String imageUrl;
 
+    //summary
     @Column(columnDefinition = "TEXT")
-    private String analysisResult;
+    private String analysisSummary;
 
-    private String detectedDisease;
+    private String detectedDisease; //탐지된 질병
 
+    //solution
     @Column(columnDefinition = "TEXT")
-    private String solutionSummary;
+    private String solution;
 
     private LocalDateTime createdAt;
 
@@ -38,9 +40,9 @@ public class PhotoAnalysis {
         this.createdAt = LocalDateTime.now();
     }
 
-    public void updateAnalysisResult(String analysisResult, String detectedDisease, String solutionSummary) {
-        this.analysisResult = analysisResult;
+    public void updateAnalysisResult(String analysisSummary, String detectedDisease, String solution) {
+        this.analysisSummary = analysisSummary;
         this.detectedDisease = detectedDisease;
-        this.solutionSummary = solutionSummary;
+        this.solution = solution;
     }
 }
