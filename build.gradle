@@ -59,6 +59,9 @@ dependencies {
     // thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
+    // excel
+    implementation 'org.apache.poi:poi-ooxml:5.4.1'
 }
 
 tasks.named('test') {

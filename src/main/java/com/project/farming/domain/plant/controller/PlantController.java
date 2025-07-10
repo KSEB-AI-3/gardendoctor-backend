@@ -5,6 +5,7 @@ import com.project.farming.domain.plant.dto.PlantResponseDto;
 import com.project.farming.domain.plant.service.PlantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class PlantController {
 
     @PostMapping
     @Operation(summary = "식물 추가", description = "AI 기능을 사용할 수 있는 식물을 추가하는 기능")
-    public ResponseEntity<PlantResponseDto> createPlant(@RequestBody PlantRequestDto request) {
+    public ResponseEntity<PlantResponseDto> createPlant(@Valid @RequestBody PlantRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(plantService.savePlant(request));
     }
@@ -41,7 +42,7 @@ public class PlantController {
 
     @PutMapping("/{plantId}")
     @Operation(summary = "식물 정보 수정", description = "AI 기능을 사용할 수 있는 식물 1개의 정보를 수정하는 기능")
-    public ResponseEntity<PlantResponseDto> updatePlant(@PathVariable Long plantId, @RequestBody PlantRequestDto request) {
+    public ResponseEntity<PlantResponseDto> updatePlant(@PathVariable Long plantId, @Valid @RequestBody PlantRequestDto request) {
         return ResponseEntity.ok(plantService.updatePlant(plantId, request));
     }
 

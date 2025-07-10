@@ -63,17 +63,20 @@ public class SecurityConfig {
                         .requestMatchers("/auth/logout").authenticated() // AuthController에 명시된 그대로 '/auth/logout'
                         .requestMatchers("/auth/user/me").authenticated()
 
+                        // FarmController (모든 엔드포인트)
+                        // FarmController는 @SecurityRequirement가 없지만, 모든 CRUD는 인증 필요하다고 가정
+                        .requestMatchers("/api/farms/**").authenticated()
+
                         // PlantController (모든 엔드포인트)
                         // PlantController는 @SecurityRequirement가 없지만, 모든 CRUD는 인증 필요하다고 가정
-                        .requestMatchers("/plants/**").authenticated()
+                        .requestMatchers("/api/plants/**").authenticated()
 
                         // UserPlantController (모든 엔드포인트)
-                        // UserPlantController는 @SecurityRequirement가 없지만, 모든 CRUD는 인증 필요하다고 가정
-                        .requestMatchers("/users/plants/**").authenticated()
+                        // UserPlantController는 @Tag 및 @SecurityRequirement(name = "jwtAuth")가 있으므로 모두 인증 필요
+                        .requestMatchers("/api/user-plants/**").authenticated()
 
                         // DiaryController (모든 엔드포인트)
                         // DiaryController는 @Tag 및 @SecurityRequirement(name = "jwtAuth")가 있으므로 모두 인증 필요
-                        .requestMatchers("/api/users/plants/**").authenticated()
                         .requestMatchers("/api/diaries/**").authenticated()
 
                         // 기타 인증 필요 경로 (제공해주신 기존 설정 유지)

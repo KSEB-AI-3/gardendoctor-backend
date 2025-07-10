@@ -3,6 +3,9 @@ package com.project.farming.domain.farm.repository;
 import com.project.farming.domain.farm.entity.FarmInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface FarmInfoRepository extends JpaRepository<FarmInfo, Long> {
-    // 필요 시 확장
+    boolean existsByGardenUniqueId(Integer gardenUniqueId);
+    List<FarmInfo> findAllByOrderByGardenUniqueIdAsc();
 }

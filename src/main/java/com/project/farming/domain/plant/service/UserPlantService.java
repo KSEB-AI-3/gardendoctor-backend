@@ -33,20 +33,16 @@ public class UserPlantService {
     public UserPlantResponseDto saveUserPlant(UserPlantRequestDto request) {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + request.getUserId()));
-
         if (userPlantRepository.existsByUserAndNickname(user, request.getNickname())) {
             throw new IllegalArgumentException("이미 등록된 사용자 식물입니다: " + request.getNickname());
         }
-
         Plant plant = plantRepository.findByName(request.getPlantName())
                 .orElseGet(() -> plantRepository.getDummyPlant("기타")
                         .orElseThrow(() -> new PlantNotFoundException("DB에 기타 항목이 존재하지 않습니다")));
-
         String plantName = plant.getName();
         if (Objects.equals(plantName, "기타")) {
             plantName = request.getPlantName();
         }
-
         UserPlant newUserPlant = UserPlant.builder()
                 .user(user)
                 .plant(plant)
@@ -68,7 +64,6 @@ public class UserPlantService {
     public List<UserPlantResponseDto> findAllUserPlants(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
-
         List<UserPlant> foundUserPlants = userPlantRepository.findByUserOrderByNicknameAsc(user);
         if (foundUserPlants.isEmpty()) {
             throw new UserPlantNotFoundException("등록된 사용자 식물이 없습니다.");
@@ -79,7 +74,6 @@ public class UserPlantService {
                         .plantName(userPlant.getPlantName())
                         .nickname(userPlant.getNickname())
                         .plantingPlace(userPlant.getPlantingPlace())
-                        .plantedDate(userPlant.getPlantedDate())
                         .imageUrl(userPlant.getImageUrl())
                         .build())
                 .collect(Collectors.toList());
@@ -88,7 +82,6 @@ public class UserPlantService {
     public UserPlantResponseDto findUserPlant(Long userId, Long userPlantId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
-
         UserPlant foundUserPlant = userPlantRepository.findByUserAndUserPlantId(user, userPlantId)
                 .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 사용자 식물입니다: " + userPlantId));
         return UserPlantResponseDto.builder()
@@ -124,12 +117,8 @@ public class UserPlantService {
     public void deleteUserPlant(Long userId, Long userPlantId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
-
         UserPlant userPlant = userPlantRepository.findByUserAndUserPlantId(user, userPlantId)
                 .orElseThrow(() -> new UserPlantNotFoundException("등록되지 않은 사용자 식물입니다: " + userPlantId));
         userPlantRepository.delete(userPlant);
     }
-
-    // 식물별 일지 작성 수 반환하는 기능 추가
-    // 등록된 식물의 정보를 가져오는 기능 추가
 }
