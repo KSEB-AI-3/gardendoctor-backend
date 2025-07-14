@@ -1,7 +1,7 @@
 package com.project.farming.domain.farm.config;
 
-import com.project.farming.domain.farm.entity.FarmInfo;
-import com.project.farming.domain.farm.repository.FarmInfoRepository;
+import com.project.farming.domain.farm.entity.Farm;
+import com.project.farming.domain.farm.repository.FarmRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -28,12 +28,12 @@ import java.util.Objects;
 @Component
 public class FarmDataInitializer implements CommandLineRunner {
 
-    private final FarmInfoRepository farmInfoRepository;
+    private final FarmRepository farmRepository;
 
     @Transactional
     @Override
     public void run(String... args) throws Exception {
-        if (farmInfoRepository.count() == 0) {
+        if (farmRepository.count() == 0) {
             InputStream inputStream = getClass().getResourceAsStream("/data/farmList.xlsx");
             if (inputStream == null) {
                 throw new IllegalArgumentException("farmList 엑셀 파일을 찾을 수 없습니다.");
@@ -42,7 +42,7 @@ public class FarmDataInitializer implements CommandLineRunner {
             Workbook workbook = WorkbookFactory.create(inputStream);
             Sheet sheet = workbook.getSheetAt(0);
 
-            List<FarmInfo> farmList = new ArrayList<>();
+            List<Farm> farmList = new ArrayList<>();
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) continue;
 
@@ -90,7 +90,7 @@ public class FarmDataInitializer implements CommandLineRunner {
                 if (Objects.equals(facilities, "-")) facilities = "N/A";
                 if (imageUrl.isBlank()) imageUrl = "추가 예정";
 
-                farmList.add(FarmInfo.builder()
+                farmList.add(Farm.builder()
                         .gardenUniqueId(gardenUniqueId)
                         .operator(operator)
                         .name(name)
@@ -106,7 +106,7 @@ public class FarmDataInitializer implements CommandLineRunner {
                         .imageUrl(imageUrl)
                         .build());
             }
-            farmInfoRepository.saveAll(farmList);
+            farmRepository.saveAll(farmList);
             log.info("farm_info 테이블에 {}개의 농장 데이터가 저장되었습니다.",  farmList.size());
 
             workbook.close();

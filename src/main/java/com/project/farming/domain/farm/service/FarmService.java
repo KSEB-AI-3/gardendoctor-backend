@@ -1,9 +1,9 @@
 package com.project.farming.domain.farm.service;
 
-import com.project.farming.domain.farm.dto.FarmRequestDto;
-import com.project.farming.domain.farm.dto.FarmResponseDto;
-import com.project.farming.domain.farm.entity.FarmInfo;
-import com.project.farming.domain.farm.repository.FarmInfoRepository;
+import com.project.farming.domain.farm.dto.FarmRequest;
+import com.project.farming.domain.farm.dto.FarmResponse;
+import com.project.farming.domain.farm.entity.Farm;
+import com.project.farming.domain.farm.repository.FarmRepository;
 import com.project.farming.global.exception.FarmNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,14 +18,35 @@ import java.util.stream.Collectors;
 @Service
 public class FarmService {
 
-    private final FarmInfoRepository farmInfoRepository;
+    private final FarmRepository farmRepository;
+
+    private FarmResponse.FarmResponseBuilder toFarmResponseBuilder(Farm farm) {
+        return FarmResponse.builder()
+                .gardenUniqueId(farm.getGardenUniqueId())
+                .operator(farm.getOperator())
+                .name(farm.getName())
+                .roadNameAddress(farm.getRoadNameAddress())
+                .lotNumberAddress(farm.getLotNumberAddress())
+                .facilities(farm.getFacilities())
+                .available(farm.getAvailable())
+                .contact(farm.getContact())
+                .latitude(farm.getLatitude())
+                .longitude(farm.getLongitude())
+                .updatedAt(farm.getUpdatedAt())
+                .imageUrl(farm.getImageUrl());
+    }
+
+    private Farm findFarmById(Long farmId) {
+        return farmRepository.findById(farmId)
+                .orElseThrow(() -> new FarmNotFoundException("해당 텃밭이 존재하지 않습니다: " + farmId));
+    }
 
     @Transactional
-    public FarmResponseDto saveFarm(FarmRequestDto request) {
-        if (farmInfoRepository.existsByGardenUniqueId(request.getGardenUniqueId())) {
+    public FarmResponse saveFarm(FarmRequest request) {
+        if (farmRepository.existsByGardenUniqueId(request.getGardenUniqueId())) {
             throw new IllegalArgumentException("이미 존재하는 텃밭입니다: " + request.getGardenUniqueId());
         }
-        FarmInfo newFarm = FarmInfo.builder()
+        Farm newFarm = Farm.builder()
                 .gardenUniqueId(request.getGardenUniqueId())
                 .operator(request.getOperator())
                 .name(request.getName())
@@ -38,85 +59,58 @@ public class FarmService {
                 .longitude(request.getLongitude())
                 .imageUrl(request.getImageUrl())
                 .build();
-        FarmInfo savedFarm = farmInfoRepository.save(newFarm);
-        return FarmResponseDto.builder()
-                .message("해당 텃밭이 성공적으로 등록되었습니다.")
-                .gardenUniqueId(savedFarm.getGardenUniqueId())
-                .operator(savedFarm.getOperator())
-                .name(savedFarm.getName())
+        Farm savedFarm = farmRepository.save(newFarm);
+        return toFarmResponseBuilder(savedFarm)
+                .farmId(savedFarm.getFarmId())
                 .build();
     }
     
-    public List<FarmResponseDto> findAllFarms() {
-        List<FarmInfo> foundFarms = farmInfoRepository.findAllByOrderByGardenUniqueIdAsc();
+    public List<FarmResponse> findAllFarms() {
+        List<Farm> foundFarms = farmRepository.findAllByOrderByGardenUniqueIdAsc();
         if (foundFarms.isEmpty()) {
             throw new FarmNotFoundException("등록된 텃밭이 없습니다.");
         }
         return foundFarms.stream()
-                .map(farm -> FarmResponseDto.builder()
+                .map(farm -> FarmResponse.builder()
                         .farmId(farm.getFarmId())
                         .gardenUniqueId(farm.getGardenUniqueId())
                         .operator(farm.getOperator())
                         .name(farm.getName())
+                        .lotNumberAddress(farm.getLotNumberAddress())
                         .updatedAt(farm.getUpdatedAt())
                         .imageUrl(farm.getImageUrl())
                         .build())
                 .collect(Collectors.toList());
     }
 
-    public FarmResponseDto findFarm(Long farmId) {
-        FarmInfo foundFarm = farmInfoRepository.findById(farmId)
-                .orElseThrow(() -> new FarmNotFoundException("해당 텃밭이 존재하지 않습니다: " + farmId));
-        return FarmResponseDto.builder()
-                .farmId(foundFarm.getFarmId())
-                .gardenUniqueId(foundFarm.getGardenUniqueId())
-                .operator(foundFarm.getOperator())
-                .name(foundFarm.getName())
-                .roadNameAddress(foundFarm.getRoadNameAddress())
-                .lotNumberAddress(foundFarm.getLotNumberAddress())
-                .facilities(foundFarm.getFacilities())
-                .available(foundFarm.getAvailable())
-                .contact(foundFarm.getContact())
-                .latitude(foundFarm.getLatitude())
-                .longitude(foundFarm.getLongitude())
-                .updatedAt(foundFarm.getUpdatedAt())
-                .imageUrl(foundFarm.getImageUrl())
-                .build();
+    public FarmResponse findFarm(Long farmId) {
+        Farm foundFarm = findFarmById(farmId);
+        return toFarmResponseBuilder(foundFarm).build();
     }
 
     @Transactional
-    public FarmResponseDto updateFarm(Long farmId, FarmRequestDto request) {
-        FarmInfo farm = farmInfoRepository.findById(farmId)
-                .orElseThrow(() -> new FarmNotFoundException("해당 텃밭이 존재하지 않습니다: " + farmId));
+    public FarmResponse updateFarm(Long farmId, FarmRequest request) {
+        Farm farm = findFarmById(farmId);
         farm.updateFarmInfo(request.getGardenUniqueId(), request.getOperator(), request.getName(),
                 request.getRoadNameAddress(), request.getLotNumberAddress(), request.getFacilities(),
                 request.getAvailable(), request.getContact(), request.getLatitude(), request.getLongitude(),
                 request.getImageUrl());
-        FarmInfo updatedFarm = farmInfoRepository.save(farm);
-        return FarmResponseDto.builder()
-                .message("해당 텃밭 정보가 성공적으로 수정되었습니다.")
-                .gardenUniqueId(updatedFarm.getGardenUniqueId())
-                .operator(updatedFarm.getOperator())
-                .name(updatedFarm.getName())
-                .build();
+        Farm updatedFarm = farmRepository.save(farm);
+        return toFarmResponseBuilder(updatedFarm).build();
     }
 
     @Transactional
     public void deleteFarm(Long farmId) {
-        FarmInfo farm = farmInfoRepository.findById(farmId)
-                .orElseThrow(() -> new FarmNotFoundException("해당 텃밭이 존재하지 않습니다: " + farmId));
-        farmInfoRepository.delete(farm);
+        Farm farm = findFarmById(farmId);
+        farmRepository.delete(farm);
     }
 
-    public List<FarmResponseDto> findFarmsByLocation(Double latitude, Double longitude, Double radius) {
+    public List<FarmResponse> findFarmsByCurrentLocation (Double latitude, Double longitude, Double radius) {
         log.info("현재 위치: {}, {} / 반경: {}", latitude, longitude, radius);
-        // 수정 예정
-        List<FarmInfo> foundFarms = farmInfoRepository.findAll();
-        if (foundFarms.isEmpty()) {
-            throw new FarmNotFoundException("등록된 텃밭이 없습니다.");
-        }
+        List<Farm> foundFarms = farmRepository.findFarmsWithinRadius(
+                latitude, longitude, radius * 1000); // 미터 단위로 계산
         return foundFarms.stream()
-                .map(farm -> FarmResponseDto.builder().build())
+                .map(farm -> toFarmResponseBuilder(farm).build())
                 .collect(Collectors.toList());
     }
 }

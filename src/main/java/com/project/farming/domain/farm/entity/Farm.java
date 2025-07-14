@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class FarmInfo {
+public class Farm {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long farmId;
