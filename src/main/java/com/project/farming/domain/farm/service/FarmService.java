@@ -20,27 +20,6 @@ public class FarmService {
 
     private final FarmRepository farmRepository;
 
-    private FarmResponse.FarmResponseBuilder toFarmResponseBuilder(Farm farm) {
-        return FarmResponse.builder()
-                .gardenUniqueId(farm.getGardenUniqueId())
-                .operator(farm.getOperator())
-                .name(farm.getName())
-                .roadNameAddress(farm.getRoadNameAddress())
-                .lotNumberAddress(farm.getLotNumberAddress())
-                .facilities(farm.getFacilities())
-                .available(farm.getAvailable())
-                .contact(farm.getContact())
-                .latitude(farm.getLatitude())
-                .longitude(farm.getLongitude())
-                .updatedAt(farm.getUpdatedAt())
-                .imageUrl(farm.getImageUrl());
-    }
-
-    private Farm findFarmById(Long farmId) {
-        return farmRepository.findById(farmId)
-                .orElseThrow(() -> new FarmNotFoundException("해당 텃밭이 존재하지 않습니다: " + farmId));
-    }
-
     @Transactional
     public FarmResponse saveFarm(FarmRequest request) {
         if (farmRepository.existsByGardenUniqueId(request.getGardenUniqueId())) {
@@ -112,5 +91,26 @@ public class FarmService {
         return foundFarms.stream()
                 .map(farm -> toFarmResponseBuilder(farm).build())
                 .collect(Collectors.toList());
+    }
+
+    private FarmResponse.FarmResponseBuilder toFarmResponseBuilder(Farm farm) {
+        return FarmResponse.builder()
+                .gardenUniqueId(farm.getGardenUniqueId())
+                .operator(farm.getOperator())
+                .name(farm.getName())
+                .roadNameAddress(farm.getRoadNameAddress())
+                .lotNumberAddress(farm.getLotNumberAddress())
+                .facilities(farm.getFacilities())
+                .available(farm.getAvailable())
+                .contact(farm.getContact())
+                .latitude(farm.getLatitude())
+                .longitude(farm.getLongitude())
+                .updatedAt(farm.getUpdatedAt())
+                .imageUrl(farm.getImageUrl());
+    }
+
+    private Farm findFarmById(Long farmId) {
+        return farmRepository.findById(farmId)
+                .orElseThrow(() -> new FarmNotFoundException("해당 텃밭이 존재하지 않습니다: " + farmId));
     }
 }

@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class PlantResponseDto {
+public class PlantResponse {
     private Long plantId;
     private String name;
     private String englishName;

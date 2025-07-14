@@ -9,13 +9,19 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
-public class UserPlantResponseDto {
+public class UserPlantResponse {
+    private Long userPlantId;
     private Long userId;
     private String plantName;
     private String nickname;
     private String plantingPlace;
     private LocalDateTime plantedDate;
     private String notes;
-    private String imageUrl;
+    private String userPlantImageUrl;
     private String message;
+
+    private String plantEnglishName;
+    private String species;
+    private String season;
+    private String plantImageUrl;
 }

@@ -1,6 +1,6 @@
 package com.project.farming.domain.plant.entity;
 
-import com.project.farming.domain.farm.entity.FarmInfo;
+import com.project.farming.domain.farm.entity.Farm;
 import com.project.farming.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,7 +37,7 @@ public class UserPlant {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_id", nullable = false)
-    private FarmInfo farm; // 등록된 텃밭
+    private Farm farm; // 등록된 텃밭
     
     private String plantingPlace; // 심은 장소(등록된 텃밭, 직접 입력)
     private LocalDateTime plantedDate;
@@ -59,9 +59,10 @@ public class UserPlant {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateUserPlant(String nickname, String plantingPlace,
+    public void updateUserPlant(String nickname, Farm farm, String plantingPlace,
                                 String notes, String imageUrl) {
         this.nickname = nickname;
+        this.farm = farm;
         this.plantingPlace = plantingPlace;
         this.notes = notes;
         this.imageUrl = imageUrl;
