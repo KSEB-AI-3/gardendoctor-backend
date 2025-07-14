@@ -7,9 +7,11 @@ import com.project.farming.domain.notification.entity.Notification;
 import com.project.farming.domain.notification.repository.NotificationRepository;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.domain.user.repository.UserRepository;
+import com.project.farming.global.exception.UserNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,25 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final FcmService fcmService;
+
+
+    /**
+     * 매일 오전 10시 모든 사용자에게
+     * "오늘의 할 일" 알림 전송
+     */
+    @Scheduled(cron = "0 0 10 * * *")
+    public void sendNotifications() {
+        List<String> targetTokens = userRepository.findAll().stream()
+                .map(User::getFcmToken)
+                .collect(Collectors.toList());
+        if (targetTokens.isEmpty()) {
+            throw new UserNotFoundException("사용자가 존재하지 않습니다.");
+        }
+        fcmService.sendMessagesTo(
+                targetTokens,
+                "\uD83C\uDF31 오늘의 식물 관리 알림",
+                "\uD83D\uDCA7 오늘 물 주기와 ✂\uFE0F 가지치기, \uD83D\uDC8A 영양제 주기를 잊지 말고 챙겨주세요.");
+    }
 
     /**
      * 사용자 알림 전체 조회 (최신순)

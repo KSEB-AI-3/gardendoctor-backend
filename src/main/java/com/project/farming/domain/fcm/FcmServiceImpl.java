@@ -1,12 +1,12 @@
 package com.project.farming.domain.fcm;
 
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
+import com.google.firebase.messaging.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Firebase Admin SDK 기반 FCM 메시지 발송 구현체
@@ -48,6 +48,44 @@ public class FcmServiceImpl implements FcmService {
             }
         } catch (Exception e) {
             log.error("🔥 Unexpected FCM error [{}]", maskToken(targetToken), e);
+        }
+    }
+
+    // 수정 필요
+    private void checkFailure(BatchResponse response, List<String> targetTokens) {
+        List<SendResponse> responses = response.getResponses();
+        List<String> failedTokens = new ArrayList<>();
+        for (int i = 0; i < responses.size(); i++) {
+            if (!responses.get(i).isSuccessful()) {
+                failedTokens.add(targetTokens.get(i));
+            }
+        }
+        log.info("Failed to send messages: {}", failedTokens);
+    }
+
+    @Override
+    public void sendMessagesTo(List<String> targetTokens, String title, String body) {
+        // 최대 500개까지 동시 전송 가능(그 이상은 수정 필요 > 일반 메시지의 Topic)
+        MulticastMessage message = MulticastMessage.builder()
+                .setNotification(com.google.firebase.messaging.Notification.builder()
+                        .setTitle(title)
+                        .setBody(body)
+                        .build())
+                .addAllTokens(targetTokens)
+                .build();
+
+        BatchResponse response;
+        try {
+            response = FirebaseMessaging.getInstance().sendEachForMulticast(message);
+            log.info("Messages send result - Success: {}, Failure: {}",
+                    response.getSuccessCount(), response.getFailureCount());
+        } catch (FirebaseMessagingException e) {
+            log.error("Messages send failed: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
+
+        if (response.getFailureCount() > 0) {
+            checkFailure(response, targetTokens);
         }
     }
 

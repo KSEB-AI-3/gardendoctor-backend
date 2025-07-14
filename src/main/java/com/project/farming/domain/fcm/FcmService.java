@@ -1,5 +1,7 @@
 package com.project.farming.domain.fcm;
 
+import java.util.List;
+
 /**
  * FCM 메시지 발송 기능 인터페이스
  */
@@ -13,4 +15,5 @@ public interface FcmService {
      * @param body        알림 내용
      */
     void sendMessageTo(String targetToken, String title, String body);
+    void sendMessagesTo(List<String> targetTokens, String title, String body);
 }
