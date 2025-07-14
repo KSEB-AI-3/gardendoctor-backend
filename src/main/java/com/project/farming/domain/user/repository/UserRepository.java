@@ -11,7 +11,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByOauthProviderAndOauthId(String oauthProvider, String oauthId);
     Optional<User> findByEmail(String email);
-    //Optional<User> findById(Long userId); // User 엔티티의 PK가 userId
+    Optional<User> findById(Long userId); // User 엔티티의 PK가 userId
     Boolean existsByEmail(String email); // AuthService.registerUser에서 사용
 
     Optional<Object> findByUserId(Long userId);
