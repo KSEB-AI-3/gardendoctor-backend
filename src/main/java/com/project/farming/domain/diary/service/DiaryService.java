@@ -6,7 +6,9 @@ import com.project.farming.domain.diary.repository.DiaryRepository;
 import com.project.farming.domain.diary.repository.DiaryUserPlantRepository;
 import com.project.farming.domain.plant.entity.UserPlant;
 import com.project.farming.domain.plant.repository.UserPlantRepository;
+import com.project.farming.domain.plant.service.UserPlantDailyStatusRedisService;
 import com.project.farming.domain.user.entity.User;
+import com.project.farming.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ public class DiaryService {
     private final DiaryRepository diaryRepository;
     private final DiaryUserPlantRepository diaryUserPlantRepository;
     private final UserPlantRepository userPlantRepository;
+    private final UserPlantDailyStatusRedisService userPlantDailyStatusRedisService;
 
     /**
      * 일지 생성
@@ -59,11 +62,11 @@ public class DiaryService {
 
             // 요청된 모든 UserPlant ID가 실제로 존재하는지, 그리고 현재 사용자의 것인지 검증
             if (userPlants.size() != selectedUserPlantIds.size()) {
-                throw new IllegalArgumentException("Some selected UserPlants were not found.");
+                throw new IllegalArgumentException("일부 선택된 식물을 찾을 수 없습니다.");
             }
             for (UserPlant userPlant : userPlants) {
-                if (!userPlant.getUser().getUserId().equals(user.getUserId())) { // ID 비교로 변경
-                    throw new IllegalArgumentException("User does not own one of the selected UserPlants.");
+                if (!userPlant.getUser().getUserId().equals(user.getUserId())) {
+                    throw new IllegalArgumentException("본인의 식물이 아닌 식물이 선택되었습니다.");
                 }
             }
 
@@ -77,6 +80,13 @@ public class DiaryService {
             }
             diaryUserPlantRepository.saveAll(diary.getDiaryUserPlants()); // 연결 엔티티 저장
         }
+        for (DiaryUserPlant diaryUserPlant : diary.getDiaryUserPlants()) {
+            Long userPlantId = diaryUserPlant.getUserPlant().getUserPlantId();
+            userPlantDailyStatusRedisService.updateStatusOnDiaryWrite(
+                    userPlantId, watered, pruned, fertilized
+            );
+        }
+
         return diary;
     }
 
@@ -98,36 +108,30 @@ public class DiaryService {
     public Diary updateDiary(Long diaryId, User user, String title, String content, String imageUrl,
                              boolean watered, boolean pruned, boolean fertilized,
                              List<Long> newUserPlantIds) {
-        // 일지 조회 및 권한 확인
-        Diary diary = diaryRepository.findById(diaryId)
-                .orElseThrow(() -> new NoSuchElementException("Diary not found with ID: " + diaryId));
 
-        if (!diary.getUser().getUserId().equals(user.getUserId())) { // ID 비교로 변경
-            throw new IllegalArgumentException("User does not have permission to update this diary.");
+        Diary diary = diaryRepository.findById(diaryId)
+                .orElseThrow(() -> new NoSuchElementException("해당 ID의 일지를 찾을 수 없습니다: " + diaryId));
+
+        if (!diary.getUser().getUserId().equals(user.getUserId())) {
+            throw new IllegalArgumentException("해당 일지에 대한 수정 권한이 없습니다.");
         }
 
-        // Diary 기본 정보 업데이트
         diary.updateDiary(title, content, imageUrl, watered, pruned, fertilized);
 
-        // 기존 DiaryUserPlant 연결 모두 제거
-        // orphanRemoval=true 설정으로 DB에서도 해당 연결 데이터가 삭제됨
         diary.clearDiaryUserPlants();
 
-        // 새로운 UserPlant 연결 추가
         if (newUserPlantIds != null && !newUserPlantIds.isEmpty()) {
             List<UserPlant> newUserPlants = userPlantRepository.findAllById(newUserPlantIds);
 
-            // 요청된 모든 UserPlant ID가 실제로 존재하는지, 그리고 현재 사용자의 것인지 검증
             if (newUserPlants.size() != newUserPlantIds.size()) {
-                throw new IllegalArgumentException("Some selected UserPlants were not found for update.");
+                throw new IllegalArgumentException("일부 선택된 식물을 찾을 수 없습니다 (수정).");
             }
             for (UserPlant userPlant : newUserPlants) {
-                if (!userPlant.getUser().getUserId().equals(user.getUserId())) { // ID 비교로 변경
-                    throw new IllegalArgumentException("User does not own one of the selected UserPlants for update.");
+                if (!userPlant.getUser().getUserId().equals(user.getUserId())) {
+                    throw new IllegalArgumentException("본인의 식물이 아닌 식물이 선택되었습니다 (수정).");
                 }
             }
 
-            // 새로운 DiaryUserPlant 연결 엔티티 생성 및 Diary에 추가
             for (UserPlant userPlant : newUserPlants) {
                 DiaryUserPlant diaryUserPlant = DiaryUserPlant.builder()
                         .diary(diary)
@@ -135,10 +139,17 @@ public class DiaryService {
                         .build();
                 diary.addDiaryUserPlant(diaryUserPlant);
             }
-            diaryUserPlantRepository.saveAll(diary.getDiaryUserPlants()); // 새로운 연결 엔티티 저장
+            diaryUserPlantRepository.saveAll(diary.getDiaryUserPlants());
         }
 
-        return diary; // 변경된 Diary 반환 (영속성 컨텍스트에 의해 자동 업데이트됨)
+        for (DiaryUserPlant diaryUserPlant : diary.getDiaryUserPlants()) {
+            Long userPlantId = diaryUserPlant.getUserPlant().getUserPlantId();
+            userPlantDailyStatusRedisService.updateStatusOnDiaryWrite(
+                    userPlantId, watered, pruned, fertilized
+            );
+        }
+
+        return diary;
     }
 
     /**
@@ -151,10 +162,10 @@ public class DiaryService {
     public void deleteDiary(Long diaryId, User user) {
         // 일지 조회 및 권한 확인
         Diary diary = diaryRepository.findById(diaryId)
-                .orElseThrow(() -> new NoSuchElementException("Diary not found with ID: " + diaryId));
+                .orElseThrow(() -> new NoSuchElementException("해당 ID의 일지를 찾을 수 없습니다: " + diaryId));
 
         if (!diary.getUser().getUserId().equals(user.getUserId())) { // ID 비교로 변경
-            throw new IllegalArgumentException("User does not have permission to delete this diary.");
+            throw new IllegalArgumentException("해당 일지에 대한 삭제 권한이 없습니다.");
         }
         diaryRepository.delete(diary); // 일지 삭제 (CascadeType.ALL과 orphanRemoval=true 설정으로 연결된 DiaryUserPlant도 삭제됨)
     }
@@ -168,9 +179,9 @@ public class DiaryService {
      */
     public Diary getDiaryById(Long diaryId, User user) {
         Diary diary = diaryRepository.findById(diaryId)
-                .orElseThrow(() -> new NoSuchElementException("Diary not found with ID: " + diaryId));
+                .orElseThrow(() -> new NoSuchElementException("해당 ID의 일지를 찾을 수 없습니다: " + diaryId));
         if (!diary.getUser().getUserId().equals(user.getUserId())) { // ID 비교로 변경
-            throw new IllegalArgumentException("User does not have permission to view this diary.");
+            throw new IllegalArgumentException("해당 일지에 대한 조회 권한이 없습니다.");
         }
         return diary;
     }
@@ -207,7 +218,7 @@ public class DiaryService {
     public List<Diary> getDiariesByUserAndUserPlant(User user, Long userPlantId) {
         // UserPlant가 현재 사용자의 것인지 확인하며 조회
         UserPlant userPlant = userPlantRepository.findByUserAndUserPlantId(user, userPlantId)
-                .orElseThrow(() -> new NoSuchElementException("UserPlant not found with ID: " + userPlantId + " for this user."));
+                .orElseThrow(() -> new NoSuchElementException("사용자에 대한 해당 식물을 찾을 수 없습니다: " + userPlantId));
 
         return diaryRepository.findByUserAndUserPlant(user, userPlant);
     }
@@ -224,12 +235,12 @@ public class DiaryService {
 
         // 요청된 모든 UserPlant ID가 실제로 존재하는지 검증
         if (userPlants.size() != userPlantIds.size()) {
-            throw new IllegalArgumentException("Some UserPlants not found from provided IDs.");
+            throw new IllegalArgumentException("일부 선택된 식물을 찾을 수 없습니다.");
         }
         // UserPlant들이 현재 사용자의 것인지 검증
         for (UserPlant up : userPlants) {
             if (!up.getUser().getUserId().equals(user.getUserId())) { // ID 비교로 변경
-                throw new IllegalArgumentException("User does not own one of the selected UserPlants.");
+                throw new IllegalArgumentException("본인의 식물이 아닌 식물이 포함되어 있습니다.");
             }
         }
 

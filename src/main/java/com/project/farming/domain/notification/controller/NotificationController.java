@@ -32,7 +32,7 @@ public class NotificationController {
             @PathVariable Long userId,
             @RequestBody NotificationRequestDto requestDto
     ) {
-        notificationService.createNotification(userId, requestDto);
+        notificationService.createAndSendNotification(userId, requestDto);
         return ResponseEntity.ok().build();
     }
 
