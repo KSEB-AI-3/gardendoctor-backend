@@ -24,5 +24,4 @@ public class FarmResponse {
     private LocalDate createdAt;
     private LocalDate updatedAt;
     private String imageUrl;
-    private String message;
 }

@@ -39,7 +39,7 @@ public class FarmService {
                 .imageUrl(request.getImageUrl())
                 .build();
         Farm savedFarm = farmRepository.save(newFarm);
-        return toFarmResponseBuilder(savedFarm)
+        return toFarmResponseBuilder(savedFarm, true)
                 .farmId(savedFarm.getFarmId())
                 .build();
     }
@@ -50,21 +50,24 @@ public class FarmService {
             throw new FarmNotFoundException("등록된 텃밭이 없습니다.");
         }
         return foundFarms.stream()
-                .map(farm -> FarmResponse.builder()
-                        .farmId(farm.getFarmId())
-                        .gardenUniqueId(farm.getGardenUniqueId())
-                        .operator(farm.getOperator())
-                        .name(farm.getName())
-                        .lotNumberAddress(farm.getLotNumberAddress())
-                        .updatedAt(farm.getUpdatedAt())
-                        .imageUrl(farm.getImageUrl())
-                        .build())
+                .map(farm -> toFarmResponseBuilder(farm, false).build())
+                .collect(Collectors.toList());
+    }
+
+    public List<FarmResponse> findFarmsByKeyword(String searchType, String keyword) {
+        List<Farm> foundFarms = switch (searchType) {
+            case "name" -> farmRepository.findByNameContainingOrderByGardenUniqueIdAsc(keyword);
+            case "address" -> farmRepository.findByAddressContainingOrderByGardenUniqueIdAsc("%" + keyword + "%");
+            default -> throw new IllegalArgumentException("지원하지 않는 검색 조건입니다: " + searchType);
+        };
+        return foundFarms.stream()
+                .map(farm -> toFarmResponseBuilder(farm, false).build())
                 .collect(Collectors.toList());
     }
 
     public FarmResponse findFarm(Long farmId) {
         Farm foundFarm = findFarmById(farmId);
-        return toFarmResponseBuilder(foundFarm).build();
+        return toFarmResponseBuilder(foundFarm, true).build();
     }
 
     @Transactional
@@ -75,7 +78,7 @@ public class FarmService {
                 request.getAvailable(), request.getContact(), request.getLatitude(), request.getLongitude(),
                 request.getImageUrl());
         Farm updatedFarm = farmRepository.save(farm);
-        return toFarmResponseBuilder(updatedFarm).build();
+        return toFarmResponseBuilder(updatedFarm, true).build();
     }
 
     @Transactional
@@ -89,24 +92,28 @@ public class FarmService {
         List<Farm> foundFarms = farmRepository.findFarmsWithinRadius(
                 latitude, longitude, radius * 1000); // 미터 단위로 계산
         return foundFarms.stream()
-                .map(farm -> toFarmResponseBuilder(farm).build())
+                .map(farm -> toFarmResponseBuilder(farm, true).build())
                 .collect(Collectors.toList());
     }
 
-    private FarmResponse.FarmResponseBuilder toFarmResponseBuilder(Farm farm) {
-        return FarmResponse.builder()
+    private FarmResponse.FarmResponseBuilder toFarmResponseBuilder(Farm farm, boolean includeDetails) {
+        FarmResponse.FarmResponseBuilder builder = FarmResponse.builder()
                 .gardenUniqueId(farm.getGardenUniqueId())
                 .operator(farm.getOperator())
                 .name(farm.getName())
-                .roadNameAddress(farm.getRoadNameAddress())
                 .lotNumberAddress(farm.getLotNumberAddress())
-                .facilities(farm.getFacilities())
-                .available(farm.getAvailable())
-                .contact(farm.getContact())
-                .latitude(farm.getLatitude())
-                .longitude(farm.getLongitude())
                 .updatedAt(farm.getUpdatedAt())
                 .imageUrl(farm.getImageUrl());
+        if (includeDetails) {
+            builder.roadNameAddress(farm.getRoadNameAddress())
+                    .facilities(farm.getFacilities())
+                    .available(farm.getAvailable())
+                    .contact(farm.getContact())
+                    .latitude(farm.getLatitude())
+                    .longitude(farm.getLongitude())
+                    .createdAt(farm.getCreatedAt());
+        }
+        return builder;
     }
 
     private Farm findFarmById(Long farmId) {

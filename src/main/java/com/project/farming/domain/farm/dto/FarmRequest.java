@@ -1,6 +1,6 @@
 package com.project.farming.domain.farm.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Setter
 public class FarmRequest {
 
-    @NotBlank(message = "텃밭 고유번호를 입력해주세요.")
+    @NotNull(message = "텃밭 고유번호를 입력해주세요.")
     private Integer gardenUniqueId; // 텃밭 고유번호
 
     private String operator; // 운영주체
