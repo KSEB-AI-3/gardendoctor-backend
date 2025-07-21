@@ -14,5 +14,4 @@ public class PlantResponse {
     private String species;
     private String season;
     private String imageUrl;
-    private String message;
 }

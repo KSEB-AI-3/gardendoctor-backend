@@ -44,14 +44,14 @@ public class PlantService {
             throw new PlantNotFoundException("등록된 식물이 없습니다.");
         }
         return foundPlants.stream()
-                .map(plant -> PlantResponse.builder()
-                        .plantId(plant.getPlantId())
-                        .name(plant.getName())
-                        .englishName(plant.getEnglishName())
-                        .species(plant.getSpecies())
-                        .season(plant.getSeason())
-                        .imageUrl(plant.getImageUrl())
-                        .build())
+                .map(plant -> toPlantResponseBuilder(plant).build())
+                .collect(Collectors.toList());
+    }
+
+    public List<PlantResponse> findPlantsByKeyword(String keyword) {
+        List<Plant> foundPlants = plantRepository.findByNameContainingOrderByNameAsc(keyword);
+        return foundPlants.stream()
+                .map(plant -> toPlantResponseBuilder(plant).build())
                 .collect(Collectors.toList());
     }
 

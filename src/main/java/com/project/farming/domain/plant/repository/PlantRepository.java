@@ -16,4 +16,5 @@ public interface PlantRepository extends JpaRepository<Plant, Long> {
 
     List<Plant> findAllByOrderByNameAsc();
     Optional<Plant> findByName(String name);
+    List<Plant> findByNameContainingOrderByNameAsc(String keyword);
 }
