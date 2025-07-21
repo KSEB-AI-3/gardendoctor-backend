@@ -18,7 +18,6 @@ public class UserPlantResponse {
     private LocalDateTime plantedDate;
     private String notes;
     private String userPlantImageUrl;
-    private String message;
 
     private String plantEnglishName;
     private String species;

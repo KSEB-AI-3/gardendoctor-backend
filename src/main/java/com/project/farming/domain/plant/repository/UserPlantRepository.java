@@ -12,6 +12,7 @@ public interface UserPlantRepository extends JpaRepository<UserPlant, Long>  {
     boolean existsByUserAndNickname(User user, String nickname);
     List<UserPlant> findByUserOrderByNicknameAsc(User user);
     Optional<UserPlant> findByUserAndUserPlantId(User user, Long userPlantId);
+    List<UserPlant> findByUserAndNicknameContainingOrderByNicknameAsc(User user, String keyword);
 
     @Query("SELECT up FROM UserPlant up JOIN FETCH up.user JOIN FETCH up.plant")
     List<UserPlant> findAllWithUserAndPlant();
