@@ -62,6 +62,9 @@ dependencies {
 
     // excel
     implementation 'org.apache.poi:poi-ooxml:5.4.1'
+
+    // WebClient
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 tasks.named('test') {
