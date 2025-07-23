@@ -4,6 +4,7 @@ import com.project.farming.global.jwtToken.CustomUserDetailsService;
 import com.project.farming.global.jwtToken.JwtAuthenticationFilter;
 import com.project.farming.global.oauth.CustomOAuth2UserService;
 import com.project.farming.global.oauth.OAuth2AuthenticationSuccessHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,55 +38,23 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // --- 1. 인증 없이 허용 (permitAll()) ---
-
-                        // AuthController
-                        // 회원가입, 로그인, 토큰 재발급은 인증 없이 접근 가능
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/token/refresh").permitAll()
-
-                        // OAuth2 로그인 관련 모든 경로 (리다이렉션 포함)
                         .requestMatchers("/oauth2/**").permitAll()
-
-                        // 기존에 열려있던 경로들 (현재 컨트롤러 코드에는 없지만, 이전 기록에 있었으므로 혹시 몰라 유지)
-                        .requestMatchers("/users/sign-in").permitAll() // ⭐ 만약 AuthController에서 처리 안하면 제거하세요.
-                        .requestMatchers("/users/sign-up").permitAll() // ⭐ 만약 AuthController에서 처리 안하면 제거하세요.
-                        .requestMatchers("/api/notify/test").permitAll() // 특정 알림 테스트 API
-
-                        // Swagger UI 관련 (개발 및 테스트 편의를 위해)
+                        .requestMatchers("/api/notify/test").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**",  "/swagger-ui.html").permitAll()
-
-
                         // --- 2. 인증 필요 (authenticated()) ---
-
-                        // AuthController
-                        // 로그아웃, 현재 사용자 정보 조회는 인증 필요
-                        .requestMatchers("/auth/logout").authenticated() // AuthController에 명시된 그대로 '/auth/logout'
+                        .requestMatchers("/auth/logout").authenticated()
                         .requestMatchers("/auth/user/me").authenticated()
-
-                        // FarmController (모든 엔드포인트)
-                        // FarmController는 @SecurityRequirement가 없지만, 모든 CRUD는 인증 필요하다고 가정
                         .requestMatchers("/api/farms/**").authenticated()
-
-                        // PlantController (모든 엔드포인트)
-                        // PlantController는 @SecurityRequirement가 없지만, 모든 CRUD는 인증 필요하다고 가정
                         .requestMatchers("/api/plants/**").authenticated()
-
-                        // UserPlantController (모든 엔드포인트)
-                        // UserPlantController는 @Tag 및 @SecurityRequirement(name = "jwtAuth")가 있으므로 모두 인증 필요
                         .requestMatchers("/api/user-plants/**").authenticated()
-
-                        // DiaryController (모든 엔드포인트)
-                        // DiaryController는 @Tag 및 @SecurityRequirement(name = "jwtAuth")가 있으므로 모두 인증 필요
                         .requestMatchers("/api/diaries/**").authenticated()
-
-                        // 기타 인증 필요 경로 (제공해주신 기존 설정 유지)
-                        .requestMatchers("/api/notify/**").authenticated() // 알림 관련 (테스트용 제외)
-                        .requestMatchers("/api/alarms/**").authenticated() // 알람 관련
+                        .requestMatchers("/api/notify/**").authenticated()
+                        .requestMatchers("/api/alarms/**").authenticated()
                         .requestMatchers("/users/profile/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/users/fcm-token").authenticated()
-
-                        // 그 외 모든 요청은 인증 필요 (기본 보안 정책)
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -94,10 +63,18 @@ public class SecurityConfig {
                         )
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                 )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"인증이 필요합니다.\"}");
+                        })
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

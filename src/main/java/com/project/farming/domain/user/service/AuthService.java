@@ -3,6 +3,7 @@ package com.project.farming.domain.user.service;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.domain.user.entity.UserRole;
 import com.project.farming.domain.user.repository.UserRepository;
+import com.project.farming.global.exception.UserNotFoundException;
 import com.project.farming.global.jwtToken.JwtBlacklistService;
 import com.project.farming.global.jwtToken.JwtToken;
 import com.project.farming.global.jwtToken.JwtTokenProvider;
@@ -86,24 +87,23 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(String accessToken, Long userId) { // ⭐ String userEmail -> Long userId
+    public void logout(String accessToken, Long userId) {
         long remainingTimeMillis = jwtTokenProvider.getExpirationRemainingTimeMillis(accessToken);
         if (remainingTimeMillis > 0) {
             jwtBlacklistService.blacklistToken(accessToken, remainingTimeMillis);
             log.info("Access Token 블랙리스트 등록 완료. 토큰: {}", accessToken);
         } else {
-            log.warn("만료되었거나 유효하지 않은 Access Token입니다. 블랙리스트 처리하지 않습니다: {}", accessToken);
+            log.warn("만료되었거나 유효하지 않은 Access Token이 로그아웃 요청에 사용되었습니다: {}", accessToken);
         }
 
-        // 로그아웃 시에도 userId로 사용자를 찾아 Refresh Token 삭제
-        try {
-            userRepository.findById(userId).ifPresent(user -> { // ⭐ findById 사용
-                refreshTokenRepository.deleteByUser(user);
-                log.info("사용자 {} (ID: {})의 Refresh Token이 DB에서 삭제되었습니다.", user.getEmail(), userId);
-            });
-        } catch (Exception e) {
-            log.error("로그아웃 중 사용자 ID 추출 또는 Refresh Token 삭제 실패: {}", e.getMessage());
-        }
+        // Refresh Token 삭제
+        userRepository.findById(userId).ifPresentOrElse(user -> { // <-- 여기서부터 차이 발생
+            refreshTokenRepository.deleteByUser(user);
+            log.info("사용자 {} (ID: {})의 Refresh Token 삭제를 시도했습니다.", user.getEmail(), userId);
+        }, () -> {
+            log.warn("로그아웃 요청: 사용자 ID {}를 찾을 수 없습니다. 해당 사용자는 존재하지 않거나 이미 삭제되었습니다.", userId);
+            throw new UserNotFoundException("로그아웃하려는 사용자를 찾을 수 없습니다.");
+        });
     }
 
     @Transactional
