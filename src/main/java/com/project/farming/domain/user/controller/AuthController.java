@@ -1,9 +1,6 @@
 package com.project.farming.domain.user.controller;
 
-import com.project.farming.domain.user.dto.AuthResponseDto;
-import com.project.farming.domain.user.dto.LoginRequestDto;
-import com.project.farming.domain.user.dto.RegisterRequestDto;
-import com.project.farming.domain.user.dto.TokenRefreshRequestDto;
+import com.project.farming.domain.user.dto.*;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.global.jwtToken.CustomUserDetails;
 import com.project.farming.global.jwtToken.JwtToken;
@@ -142,10 +139,70 @@ public class AuthController {
     @SecurityRequirement(name = "jwtAuth")
     @GetMapping("/user/me")
     public ResponseEntity<User> getCurrentUser(
-            @Parameter(description = "인증된 사용자 ID", example = "1")
-            @AuthenticationPrincipal Long userId) {
+            @Parameter(hidden = true) // Swagger 문서에서 이 파라미터를 숨깁니다.
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Long userId = customUserDetails.getUser().getUserId();
         return authService.getUserById(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "내 정보 페이지 조회", description = "로그인한 사용자의 마이페이지 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "마이페이지 정보 조회 성공",
+                    content = @Content(schema = @Schema(implementation = UserMyPageResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class)))
+    })
+    @SecurityRequirement(name = "jwtAuth")
+    @GetMapping("/me")
+    public ResponseEntity<UserMyPageResponseDto> getMyPage(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Long userId = customUserDetails.getUser().getUserId();
+        UserMyPageResponseDto response = authService.getMyPageInfo(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "내 정보 수정", description = "로그인한 사용자의 닉네임, 프로필 이미지, FCM 토큰, 구독 상태를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "내 정보 수정 성공",
+                    content = @Content(schema = @Schema(implementation = UserMyPageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효성 검증 실패 또는 존재하지 않는 이미지 파일)",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class)))
+    })
+    @SecurityRequirement(name = "jwtAuth")
+    @PatchMapping("/me")
+    public ResponseEntity<UserMyPageResponseDto> updateMyPage(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Valid @RequestBody UserMyPageUpdateRequestDto requestDto) {
+        Long userId = customUserDetails.getUser().getUserId();
+        UserMyPageResponseDto updated = authService.updateMyPageInfo(userId, requestDto);
+        return ResponseEntity.ok(updated);
+    }
+
+    @Operation(summary = "회원 탈퇴", description = "로그인한 사용자의 계정을 삭제합니다. (하드 삭제)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "회원 탈퇴 성공 (No Content)"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class)))
+    })
+    @SecurityRequirement(name = "jwtAuth")
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMyPage(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Long userId = customUserDetails.getUser().getUserId();
+        authService.deleteMyPageInfo(userId);
+        return ResponseEntity.noContent().build();
     }
 }

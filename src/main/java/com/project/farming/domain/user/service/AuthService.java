@@ -1,5 +1,7 @@
 package com.project.farming.domain.user.service;
 
+import com.project.farming.domain.user.dto.UserMyPageResponseDto;
+import com.project.farming.domain.user.dto.UserMyPageUpdateRequestDto;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.domain.user.entity.UserRole;
 import com.project.farming.domain.user.repository.UserRepository;
@@ -9,6 +11,9 @@ import com.project.farming.global.jwtToken.JwtToken;
 import com.project.farming.global.jwtToken.JwtTokenProvider;
 import com.project.farming.global.jwtToken.RefreshToken;
 import com.project.farming.global.jwtToken.RefreshTokenRepository;
+import com.project.farming.global.s3.ImageFile;
+import com.project.farming.global.s3.ImageFileRepository;
+import com.project.farming.global.s3.ImageFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +39,8 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final ImageFileRepository imageFileRepository;
+    private final ImageFileService imageFileService; // ImageFileService 주입
 
     @Transactional
     public User registerUser(String email, String password, String nickname) {
@@ -159,9 +166,92 @@ public class AuthService {
                 .refreshToken(newRefreshTokenString)
                 .build();
     }
-
     // ⭐ userId (Long)로 사용자를 조회하는 메서드 추가
     public Optional<User> getUserById(Long userId) {
         return userRepository.findById(userId);
+    }
+    // 내 정보 조회
+    public UserMyPageResponseDto getMyPageInfo(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저가 없습니다."));
+
+        // DTO 반환 시 프로필 이미지 URL을 안전하게 가져옴
+        String profileImageUrl = (user.getProfileImageFile() != null) ? user.getProfileImageFile().getUrl() : null;
+
+        return UserMyPageResponseDto.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImageUrl(profileImageUrl) // 수정된 부분
+                .oauthProvider(user.getOauthProvider())
+                .role(user.getRole())
+                .subscriptionStatus(user.getSubscriptionStatus())
+                .build();
+    }
+
+    // 내 정보 수정
+    @Transactional
+    public UserMyPageResponseDto updateMyPageInfo(Long userId, UserMyPageUpdateRequestDto dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("회원이 없습니다"));
+
+        if (dto.getNickname() != null) {
+            user.updateNickname(dto.getNickname());
+        }
+
+        // 프로필 이미지 변경 로직
+        if (dto.getDeleteProfileImage() != null && dto.getDeleteProfileImage()) {
+            // 클라이언트가 명시적으로 이미지 삭제를 요청한 경우
+            if (user.getProfileImageFile() != null) {
+                imageFileService.deleteImage(user.getProfileImageFile().getImageFileId());
+            }
+            user.updateProfileImageFile(null);
+        } else if (dto.getProfileImageFileId() != null) {
+            // 새 프로필 이미지가 있을 경우
+            ImageFile newProfileImageFile = imageFileRepository.findById(dto.getProfileImageFileId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이미지 파일입니다."));
+            // 이전 프로필 이미지가 있다면 S3 및 DB에서 삭제 (선택 사항 - 여기서는 생략)
+            user.updateProfileImageFile(newProfileImageFile);
+        }   // else: profileImageFileId도 null이고 deleteProfileImage도 false/null이면 변경 없음
+
+
+        if (dto.getFcmToken() != null) {
+            user.updateFcmToken(dto.getFcmToken());
+        }
+
+        if (dto.getSubscriptionStatus() != null) {
+            user.updateSubscriptionStatus(dto.getSubscriptionStatus());
+        }
+
+        // DTO 반환 시 프로필 이미지 URL을 안전하게 가져옴
+        String profileImageUrl = (user.getProfileImageFile() != null) ? user.getProfileImageFile().getUrl() : null;
+
+        return UserMyPageResponseDto.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImageUrl(profileImageUrl) // 수정된 부분
+                .oauthProvider(user.getOauthProvider())
+                .role(user.getRole())
+                .subscriptionStatus(user.getSubscriptionStatus())
+                .build();
+    }
+
+    // 내 정보 삭제 (하드 삭제 예시)
+    @Transactional
+    public void deleteMyPageInfo(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("삭제할 회원이 없습니다."));
+
+        // 사용자와 연결된 프로필 이미지 파일 삭제 (선택 사항)
+        // 사용자가 탈퇴 시 프로필 이미지를 S3에서도 삭제하려면 이 로직을 추가합니다.
+        if (user.getProfileImageFile() != null) {
+            imageFileService.deleteImage(user.getProfileImageFile().getImageFileId());
+        }
+
+        // 사용자가 작성한 다른 도메인(예: Diary, Plant)의 이미지도 함께 삭제하려면
+        // ImageFileService.getImagesByDomainAndId(ImageDomainType.JOURNAL, userId) 등을 사용하여 처리해야 합니다.
+        // 이는 복잡해질 수 있으므로, 보통 이미지를 S프트 삭제하거나 별도의 정기적인 클리너 작업을 통해 처리하기도 합니다.
+        userRepository.deleteById(userId);
     }
 }

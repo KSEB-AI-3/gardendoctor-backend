@@ -1,5 +1,6 @@
 package com.project.farming.domain.user.entity;
 
+import com.project.farming.global.s3.ImageFile;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +10,7 @@ import lombok.*;
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor // @Builder를 사용하면 AllArgsConstructor가 필요할 수 있습니다.
+@AllArgsConstructor
 @Builder
 public class User {
     @Id
@@ -17,41 +18,42 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(unique = true, nullable = false) // ⭐ 이메일은 모든 사용자에게 필수
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false) // ⭐ 비밀번호는 모든 사용자에게 필수 (소셜은 가상 비밀번호)
+    @Column(nullable = false)
     private String password;
 
-    @Column(length = 50, nullable = false) // 닉네임 필수
+    @Column(length = 50, nullable = false)
     private String nickname;
 
-    @Column(length = 255)
-    private String profileImage;
+    @Column(length = 20, nullable = true)
+    private String oauthProvider;
 
-    @Column(length = 20, nullable = true) // ⭐ 소셜 로그인 아닐 시 null 허용
-    private String oauthProvider; // "google", "kakao", "naver" 등
+    @Column(length = 255, nullable = true)
+    private String oauthId;
 
-    @Column(length = 255, nullable = true) // ⭐ 소셜 로그인 고유 ID (일반 로그인 시 null)
-    private String oauthId;  // 각 소셜 서비스에서 제공하는 고유 ID (String으로 통일)
-
-    @Enumerated(EnumType.STRING) // Enum 이름을 DB에 저장하도록 설정
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role; // ⭐ UserRole 필드 추가
+    private UserRole role;
 
     @Column(length = 512)
     private String fcmToken;
 
-    @Column(length = 20, nullable = false) // 구독 상태 필수
+    @Column(length = 20, nullable = false)
     private String subscriptionStatus;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_image_file_id")
+    private ImageFile profileImageFile; // ImageFile 엔티티 참조
+
+    public void updateProfileImageFile(ImageFile imageFile) {
+        this.profileImageFile = imageFile;
+    }
 
     // --- 업데이트 메서드 ---
     public void updateNickname(String nickname) {
         this.nickname = nickname;
-    }
-
-    public void updateProfileImage(String profileImage) {
-        this.profileImage = profileImage;
     }
 
     public void updateFcmToken(String fcmToken) {
