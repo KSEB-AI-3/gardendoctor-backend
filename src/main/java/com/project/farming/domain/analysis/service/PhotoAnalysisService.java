@@ -28,7 +28,7 @@ public class PhotoAnalysisService {
     private final RestTemplate restTemplate = new RestTemplate();
 
 
-    private final String AI_SERVER_URL = "http://localhost:8000/analyze"; // FastAPI AI 서버 URL
+    private final String AI_SERVER_URL = "http://localhost:8000"; // FastAPI AI 서버 URL
 
 
     public List<PhotoAnalysisSidebarResponseDto> getSidebarAnalysisList(Long userId) {
@@ -39,27 +39,30 @@ public class PhotoAnalysisService {
                 .map(pa -> PhotoAnalysisSidebarResponseDto.builder()
                         .photoAnalysisId(pa.getPhotoAnalysisId())
                         .createdDate(pa.getCreatedAt().format(formatter))
-                        .detectedDisease(pa.getDetectedDisease()) // AI가 넘겨준 값 그대로
+                        .detectedDisease(pa.getDetectedDisease())
+                        .analysisSummary(pa.getAnalysisSummary())
+                        .solution(pa.getSolution())
+                        .imageUrl(pa.getImageUrl())
                         .build())
                 .collect(Collectors.toList());
     }
 
     // 사진 URL 받고 AI 서버 호출 + DB 저장
-    public PhotoAnalysis analyzePhotoAndSave(Long userId, String imageUrl) {
-        // 1. 사용자 조회
+
+    public PhotoAnalysis analyzePhotoAndSave(Long userId, String cropName, String imageUrl) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. userId=" + userId));
 
-        // 2. AI 서버 호출용 DTO
-        AnalysisRequest request = new AnalysisRequest(imageUrl);
+        // 수정 후:
+        AnalysisRequest request = new AnalysisRequest(cropName, imageUrl);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<AnalysisRequest> entity = new HttpEntity<>(request, headers);
 
-        // 3. AI 서버 호출
-        ResponseEntity<AnalysisResult> response = restTemplate.postForEntity(AI_SERVER_URL, entity, AnalysisResult.class);
+        String url = AI_SERVER_URL + "/diagnose-by-url/" + cropName;
+        ResponseEntity<AnalysisResult> response = restTemplate.postForEntity(url, entity, AnalysisResult.class);
 
         if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
             throw new RuntimeException("AI 서버 분석 실패");
@@ -67,14 +70,14 @@ public class PhotoAnalysisService {
 
         AnalysisResult result = response.getBody();
 
-        // 4. PhotoAnalysis 엔티티 생성 및 저장
         PhotoAnalysis photoAnalysis = PhotoAnalysis.builder()
                 .user(user)
                 .imageUrl(imageUrl)
-                .analysisSummary(result.getAnalysisSummary())
-                .detectedDisease(result.getDetectedDisease())
-                .solution(result.getSolution())
+                .analysisSummary(result.getDisease_info().getSummary())
+                .detectedDisease(result.getDisease_info().getName())
+                .solution(result.getDisease_info().getSolution())
                 .build();
+
 
         return photoAnalysisRepository.save(photoAnalysis);
     }

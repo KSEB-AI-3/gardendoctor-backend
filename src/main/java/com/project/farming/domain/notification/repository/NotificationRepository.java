@@ -13,8 +13,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findByUser_UserIdOrderByCreatedAtDesc(Long userId);
 
-    List<Notification> findByUser_UserIdAndIsReadFalseOrderByCreatedAtDesc(Long userId);
-
     @Modifying
     @Transactional
     // JPQL 쿼리도 User 엔티티의 필드 이름을 'userId'로 변경

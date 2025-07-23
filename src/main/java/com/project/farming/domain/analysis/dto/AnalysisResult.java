@@ -8,7 +8,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AnalysisResult {
-    private String analysisSummary;
-    private String detectedDisease;
-    private String solution;
+
+    private String filename;
+    private Double confidence;
+    private DiseaseInfo disease_info;  // 여기 이름이 JSON 필드명과 동일해야 함
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DiseaseInfo {
+        private String name;
+        private String summary;
+        private String solution;
+    }
 }

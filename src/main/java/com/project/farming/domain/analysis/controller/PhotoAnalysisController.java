@@ -37,13 +37,17 @@ public class PhotoAnalysisController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody AnalysisRequest request) {
         Long userId = userDetails.getUser().getUserId();
-        PhotoAnalysis saved = photoAnalysisService.analyzePhotoAndSave(userId, request.getImageUrl());
+        String cropName = request.getCropName();
+        PhotoAnalysis saved = photoAnalysisService.analyzePhotoAndSave(userId, cropName, request.getImageUrl());
 
         return ResponseEntity.ok(
                 PhotoAnalysisSidebarResponseDto.builder()
                         .photoAnalysisId(saved.getPhotoAnalysisId())
                         .createdDate(saved.getCreatedAt().toLocalDate().toString())
                         .detectedDisease(saved.getDetectedDisease())
+                        .analysisSummary(saved.getAnalysisSummary())
+                        .solution(saved.getSolution())
+                        .imageUrl(saved.getImageUrl())
                         .build()
         );
     }
