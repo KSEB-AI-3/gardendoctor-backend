@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class AnalysisResult {
 
     private String filename;
-    private Double confidence;
+    private Double confidence; // 정확도
     private DiseaseInfo disease_info;  // 여기 이름이 JSON 필드명과 동일해야 함
 
     @Getter

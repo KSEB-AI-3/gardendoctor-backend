@@ -12,6 +12,8 @@ public enum ImageDomainType {
     PLANT("식물 정보"),
     DIARY("일지"),
     FARM("텃밭 정보"),
+    USERPLANT("사용자 등록 식물"),
+    PHOTO("분석용 사진"),
     // TODO: 다른 도메인이 추가될 때 여기에 정의
     // BOARD("게시글"),
     // COMMENT("댓글"),

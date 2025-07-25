@@ -1,6 +1,7 @@
 package com.project.farming.domain.analysis.entity;
 
 import com.project.farming.domain.user.entity.User;
+import com.project.farming.global.image.entity.ImageFile;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -20,8 +21,9 @@ public class PhotoAnalysis {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private String imageUrl;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "photo_image_file_id", nullable = false)
+    private ImageFile photoImageFile;
 
     //summary
     @Column(columnDefinition = "TEXT")
@@ -44,5 +46,8 @@ public class PhotoAnalysis {
         this.analysisSummary = analysisSummary;
         this.detectedDisease = detectedDisease;
         this.solution = solution;
+    }
+    public void updatePhotoImage(ImageFile photoImageFile) {
+        this.photoImageFile = photoImageFile;
     }
 }

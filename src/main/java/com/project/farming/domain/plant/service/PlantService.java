@@ -73,7 +73,7 @@ public class PlantService {
                 .map(plant -> toPlantResponseBuilder(plant).build())
                 .collect(Collectors.toList());
     }
-
+    //작물 하나 선택
     public PlantResponse findPlant(Long plantId) {
         Plant foundPlant = findPlantById(plantId);
         return toPlantResponseBuilder(foundPlant).build();
