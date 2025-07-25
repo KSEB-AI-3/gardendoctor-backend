@@ -1,9 +1,12 @@
-package com.project.farming.global.s3;
+package com.project.farming.global.image.controller;
 
+import com.project.farming.global.exception.ImageFileNotFoundException;
+import com.project.farming.global.image.entity.ImageDomainType;
 import com.project.farming.global.jwtToken.CustomUserDetails;
-import com.project.farming.global.s3.ImageDomainType;
-import com.project.farming.global.s3.ImageFile;
-import com.project.farming.global.s3.ImageFileService;
+import com.project.farming.global.image.dto.ErrorResponseDto;
+import com.project.farming.global.image.dto.ImageUploadResponseDto;
+import com.project.farming.global.image.entity.ImageFile;
+import com.project.farming.global.image.service.ImageFileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "이미지 (Image)", description = "이미지 업로드, 삭제 등 이미지 파일 관리 API")
-public class ImageController {
+public class ImageFileController {
 
     private final ImageFileService imageFileService;
 
@@ -60,7 +63,7 @@ public class ImageController {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ImageUploadResponseDto.builder()
                         .imageFileId(uploadedImage.getImageFileId())
-                        .imageUrl(uploadedImage.getUrl())
+                        .imageUrl(uploadedImage.getImageUrl())
                         .message("이미지 업로드 성공")
                         .build()
         );
@@ -85,7 +88,7 @@ public class ImageController {
     ) {
         // 이미지 소유권 확인 로직 (중요!)
         ImageFile imageFile = imageFileService.getImageFileById(imageFileId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이미지 파일입니다."));
+                .orElseThrow(() -> new ImageFileNotFoundException("존재하지 않는 이미지 파일입니다: " + imageFileId));
 
         // 예시: USER 도메인 이미지인 경우, 해당 이미지의 domainId가 현재 로그인한 사용자의 ID와 일치하는지 확인
         if (imageFile.getDomainType() == ImageDomainType.USER && !imageFile.getDomainId().equals(customUserDetails.getUser().getUserId())) {

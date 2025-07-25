@@ -11,9 +11,9 @@ import com.project.farming.global.jwtToken.JwtToken;
 import com.project.farming.global.jwtToken.JwtTokenProvider;
 import com.project.farming.global.jwtToken.RefreshToken;
 import com.project.farming.global.jwtToken.RefreshTokenRepository;
-import com.project.farming.global.s3.ImageFile;
-import com.project.farming.global.s3.ImageFileRepository;
-import com.project.farming.global.s3.ImageFileService;
+import com.project.farming.global.image.entity.ImageFile;
+import com.project.farming.global.image.repository.ImageFileRepository;
+import com.project.farming.global.image.service.ImageFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -176,7 +176,7 @@ public class AuthService {
                 .orElseThrow(() -> new UserNotFoundException("유저가 없습니다."));
 
         // DTO 반환 시 프로필 이미지 URL을 안전하게 가져옴
-        String profileImageUrl = (user.getProfileImageFile() != null) ? user.getProfileImageFile().getUrl() : null;
+        String profileImageUrl = (user.getProfileImageFile() != null) ? user.getProfileImageFile().getImageUrl() : null;
 
         return UserMyPageResponseDto.builder()
                 .userId(user.getUserId())
@@ -224,7 +224,7 @@ public class AuthService {
         }
 
         // DTO 반환 시 프로필 이미지 URL을 안전하게 가져옴
-        String profileImageUrl = (user.getProfileImageFile() != null) ? user.getProfileImageFile().getUrl() : null;
+        String profileImageUrl = (user.getProfileImageFile() != null) ? user.getProfileImageFile().getImageUrl() : null;
 
         return UserMyPageResponseDto.builder()
                 .userId(user.getUserId())
