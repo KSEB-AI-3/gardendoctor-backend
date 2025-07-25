@@ -1,5 +1,6 @@
 package com.project.farming.domain.plant.entity;
 
+import com.project.farming.global.image.entity.ImageFile;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +14,8 @@ import java.time.LocalDate;
 @Builder
 public class Plant {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long plantId;
 
     @Column(unique = true, nullable = false)
@@ -22,7 +24,11 @@ public class Plant {
     private String englishName;
     private String species;
     private String season;
-    private String imageUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plant_image_file_id", nullable = false)
+    private ImageFile plantImageFile;
+
     private LocalDate createdAt;
     private LocalDate updatedAt;
 
@@ -36,12 +42,15 @@ public class Plant {
         this.updatedAt = LocalDate.now();
     }
 
-    public void updatePlant(String name, String englishName, String species,
-                            String season, String imageUrl) {
+    public void updatePlant(String name, String englishName,
+                            String species, String season) {
         this.name = name;
         this.englishName = englishName;
         this.species = species;
         this.season = season;
-        this.imageUrl = imageUrl;
+    }
+
+    public void updatePlantImage(ImageFile plantImageFile) {
+        this.plantImageFile = plantImageFile;
     }
 }

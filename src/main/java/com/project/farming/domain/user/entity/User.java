@@ -1,6 +1,6 @@
 package com.project.farming.domain.user.entity;
 
-import com.project.farming.global.s3.ImageFile;
+import com.project.farming.global.image.entity.ImageFile;
 import jakarta.persistence.*;
 import lombok.*;
 

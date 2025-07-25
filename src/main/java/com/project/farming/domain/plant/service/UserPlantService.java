@@ -125,8 +125,8 @@ public class UserPlantService {
             if (!Objects.equals(plant.getName(), "기타")) {
                 builder.plantEnglishName(plant.getEnglishName())
                         .species(plant.getSpecies())
-                        .season(plant.getSeason())
-                        .plantImageUrl(plant.getImageUrl());
+                        .season(plant.getSeason());
+//                        .plantImageUrl(plant.getImageUrl());
             }
         }
         return builder;

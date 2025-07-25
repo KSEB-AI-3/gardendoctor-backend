@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
+ * 텃밭 정보 총 453개
  * 1. 사용자 입력 옵션 1개
  * 2. 경기데이터드림: 경기도 내 지자체, 개인, 민간단체가 분양하고 있는 텃밭 정보
  * - 텃밭 172개
@@ -24,6 +26,7 @@ import java.util.*;
  * (중복 데이터는 2번 데이터로 사용)
  */
 
+@Order(2)
 @Slf4j
 @RequiredArgsConstructor
 @Component
@@ -50,7 +53,7 @@ public class FarmDataInitializer implements CommandLineRunner {
         saveOtherFarmOption();
         List<Farm> farmList = loadAndMergeFarmLists();
         farmRepository.saveAll(farmList);
-        log.info("farm_info 테이블에 {}개의 농장 데이터가 저장되었습니다.",  farmList.size());
+        log.info("farm_info 테이블에 {}개의 농장 데이터가 저장되었습니다.",  farmList.size() + 1);
     }
 
     private void saveOtherFarmOption() {

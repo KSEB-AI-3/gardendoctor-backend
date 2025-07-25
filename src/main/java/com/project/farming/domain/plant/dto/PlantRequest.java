@@ -14,5 +14,4 @@ public class PlantRequest {
     private String englishName;
     private String species;
     private String season;
-    private String imageUrl;
 }
