@@ -36,12 +36,6 @@ public class UserPlantController {
                     사용자 식물 정보는 JSON 형태로 전달하며, 이미지 파일은 선택적으로 함께 첨부할 수 있습니다.
                     Content-Type은 multipart/form-data입니다.
                     """
-//            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-//                    content = @Content(
-//                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-//                            schema = @Schema(implementation = UserPlantRequest.class)
-//                    )
-//            )
     )
     public ResponseEntity<UserPlantResponse> createUserPlant(
             @Parameter(hidden = true)
@@ -94,12 +88,6 @@ public class UserPlantController {
                     사용자 식물 정보는 JSON 형태로 전달하며, 이미지 파일은 선택적으로 함께 첨부할 수 있습니다.
                     Content-Type은 multipart/form-data입니다.
                     """
-//            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-//                    content = @Content(
-//                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-//                            schema = @Schema(implementation = UserPlantRequest.class)
-//                    )
-//            )
     )
     public ResponseEntity<UserPlantResponse> updateUserPlant(
             @Parameter(hidden = true)
