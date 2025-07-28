@@ -2,15 +2,17 @@ package com.project.farming.domain.plant.entity;
 
 import com.project.farming.domain.farm.entity.Farm;
 import com.project.farming.domain.user.entity.User;
+import com.project.farming.global.image.entity.ImageFile;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(
         name = "user_plants",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_id", "nickname"})
+                @UniqueConstraint(columnNames = {"user_id", "plant_nickname"})
         },
         indexes = @Index(name = "idx_user_plant", columnList = "user_id"))
 @Getter
@@ -19,7 +21,8 @@ import java.time.LocalDateTime;
 @Builder
 public class UserPlant {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userPlantId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,7 +36,7 @@ public class UserPlant {
     private String plantName; // 식물 이름(등록된 식물, 직접 입력)
 
     @Column(nullable = false, length = 20)
-    private String nickname;
+    private String plantNickname;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_id", nullable = false)
@@ -45,7 +48,10 @@ public class UserPlant {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    private String imageUrl;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_plant_image_file_id", nullable = false)
+    private ImageFile userPlantImageFile;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -59,12 +65,25 @@ public class UserPlant {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateUserPlant(String nickname, Farm farm, String plantingPlace,
-                                String notes, String imageUrl) {
-        this.nickname = nickname;
+    // 사용자 입력 식물이면 식물 이름 수정 가능
+    public void updatePlantName(String plantName) {
+        if (Objects.equals(this.plant.getPlantName(), "기타")) {
+            this.plantName = plantName;
+        }
+    }
+
+    public void updateUserPlantInfo(String plantNickname, String notes) {
+        this.plantNickname = plantNickname;
+        this.notes = notes;
+    }
+
+    // 식물을 다른 곳에 옮겨 심는 경우
+    public void updatePlantingPlace(Farm farm, String plantingPlace) {
         this.farm = farm;
         this.plantingPlace = plantingPlace;
-        this.notes = notes;
-        this.imageUrl = imageUrl;
+    }
+
+    public void updateUserPlantImage(ImageFile userPlantImageFile) {
+        this.userPlantImageFile = userPlantImageFile;
     }
 }

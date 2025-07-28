@@ -11,9 +11,8 @@ import java.time.LocalDateTime;
 @Builder
 public class UserPlantResponse {
     private Long userPlantId;
-    private Long userId;
     private String plantName;
-    private String nickname;
+    private String plantNickname;
     private String plantingPlace;
     private LocalDateTime plantedDate;
     private String notes;
