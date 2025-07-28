@@ -65,13 +65,39 @@ public class NotificationService {
     /**
      * 컨트롤러에서 (User ID와 DTO를 받아) 알림을 생성하고 발송할 때 사용.
      * User 엔티티를 조회한 후 내부 createAndSendNotification 메서드를 호출합니다.
-     * (관리자 또는 내부 시스템용)
+     * (관리자용- 다숭 사용자)
      */
     @Transactional
-    public void createAndSendNotificationFromDto(Long userId, NotificationRequestDto requestDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저를 찾을 수 없습니다: " + userId));
-        createAndSendNotification(user, requestDto.getTitle(), requestDto.getMessage());
+    public void createAndSendNotificationFromDto(NotificationRequestDto requestDto) {
+        // @NotEmpty DTO 유효성 검증이 있으므로 여기서 userIds가 null이거나 비어있을 일은 없지만, 방어 코드 추가
+        if (requestDto.getUserIds() == null || requestDto.getUserIds().isEmpty()) {
+            // 이 경고는 @NotEmpty 검증 실패 시 400 Bad Request가 발생하기 때문에 사실상 실행되지 않을 수 있습니다.
+            log.warn("🚨 No user IDs provided in NotificationRequestDto. Skipping notification.");
+            return;
+        }
+
+        // 모든 대상 사용자 조회
+        List<User> users = userRepository.findAllById(requestDto.getUserIds());
+
+        // 조회된 사용자 목록이 비어있다면 (요청된 모든 ID에 해당하는 유저가 없는 경우)
+        if (users.isEmpty()) {
+            log.error("❌ No users found for the provided IDs: {}", requestDto.getUserIds());
+            throw new UserNotFoundException("제공된 사용자 ID에 해당하는 유저를 찾을 수 없습니다: " + requestDto.getUserIds());
+        }
+
+        // 일부 사용자만 찾을 수 있었을 경우 경고 (선택 사항)
+        if (users.size() != requestDto.getUserIds().size()) {
+            List<Long> foundUserIds = users.stream().map(User::getUserId).collect(Collectors.toList());
+            List<Long> notFoundUserIds = requestDto.getUserIds().stream()
+                    .filter(id -> !foundUserIds.contains(id))
+                    .collect(Collectors.toList());
+            log.warn("⚠️ Some user IDs were not found. Not found IDs: {}", notFoundUserIds);
+        }
+
+        // 각 사용자에게 알림 발송
+        for (User user : users) {
+            createAndSendNotification(user, requestDto.getTitle(), requestDto.getMessage());
+        }
     }
 
     /**
@@ -110,17 +136,6 @@ public class NotificationService {
         return NotificationResponseDto.from(notification);
     }
 
-    /**
-     * [내부 시스템 전용] 특정 알림 ID로 읽음 처리 (권한 체크 없음)
-     * 이 메서드는 일반 사용자 API에서 직접 호출되지 않아야 합니다.
-     * 예를 들어, 배치 작업이나 관리자 도구에서 특정 알림을 강제로 읽음 처리할 때 사용될 수 있습니다.
-     */
-    @Transactional
-    public void markAsReadInternal(Long notificationId) { // 메서드명 변경하여 내부용임을 명확히
-        Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new NotificationNotFoundException("Notification not found with ID: " + notificationId));
-        notification.markAsRead();
-    }
 
     /**
      * 현재 로그인한 사용자의 읽지 않은 알림 개수 조회
@@ -162,11 +177,44 @@ public class NotificationService {
      * [관리자 전용] 특정 사용자 ID를 가진 모든 알림을 삭제 (권한 체크 없음)
      * 이 메서드는 관리자 기능 또는 내부 시스템에서만 사용되어야 합니다.
      */
+    // TODO: 관리자 계정으로 대시보드에서 특정 사용자 ID를 가진 모든 알림을 삭제
     @Transactional
     public void deleteAllUserNotificationsInternal(Long userId) { // 메서드명 변경하여 내부용임을 명확히
         // 관리자용이므로 사용자 존재 여부만 확인하거나, 호출하는 쪽에서 보장한다고 가정
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
         notificationRepository.deleteByUserId(userId);
+    }
+
+    /**
+     * [내부 시스템 전용] 특정 알림 ID로 읽음 처리 (권한 체크 없음)
+     * 이 메서드는 일반 사용자 API에서 직접 호출되지 않아야 합니다.
+     * 예를 들어, 배치 작업이나 관리자 도구에서 특정 알림을 강제로 읽음 처리할 때 사용될 수 있습니다.
+     */
+    // TODO : * [내부 시스템 전용] 특정 알림 ID로 읽음 처리 개발 예정
+    @Transactional
+    public void markAsReadInternal(Long notificationId) { // 메서드명 변경하여 내부용임을 명확히
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new NotificationNotFoundException("Notification not found with ID: " + notificationId));
+        notification.markAsRead();
+    }
+
+    /**
+     * 매일 오전 10시 모든 사용자에게
+     * "오늘의 할 일" 알림 전송
+     */
+    // TODO: 관리자 계정으로 전체 공지 발송 개발 예정
+    @Transactional
+    public void sendNotifications() {
+        List<String> targetTokens = userRepository.findAll().stream()
+                .map(User::getFcmToken)
+                .collect(Collectors.toList());
+        if (targetTokens.isEmpty()) {
+            throw new UserNotFoundException("사용자가 존재하지 않습니다.");
+        }
+        fcmService.sendMessagesTo(
+                targetTokens,
+                "\uD83C\uDF31 오늘의 식물 관리 알림",
+                "\uD83D\uDCA7 오늘 물 주기와 ✂\uFE0F 가지치기, \uD83D\uDC8A 영양제 주기를 잊지 말고 챙겨주세요.");
     }
 }

@@ -77,7 +77,8 @@ public class ImageFileService {
 
         // 기본 이미지 수정 방지(S3, imageFile DB)
         if (DefaultImages.isDefaultImage(oldImageS3Key)) {
-            log.info("기본 이미지는 수정할 수 없습니다: {}", oldImageFileId);
+            log.info("기본 이미지는 수정할 수 없습니다. 대신 새 이미지를 업로드합니다. ImageFile ID: {}", oldImageFileId);
+            // 기본 이미지는 수정이 안되므로, 새 파일이 들어오면 새로운 ImageFile을 생성하여 반환
             return uploadImage(newFile, domainType, domainId);
         }
 
@@ -103,17 +104,18 @@ public class ImageFileService {
                 .orElseThrow(() -> new ImageFileNotFoundException("존재하지 않는 이미지 파일입니다: " + imageFileId));
 
         // 기본 이미지 삭제 방지(S3, imageFile DB)
-        if (DefaultImages.isDefaultImage(imageFile.getS3Key())) {
+        if (imageFile.getS3Key() != null && DefaultImages.isDefaultImage(imageFile.getS3Key())) {
             log.info("기본 이미지는 삭제할 수 없습니다: {}", imageFileId);
             return;
         }
 
         // S3 Key가 존재하는 경우에만 S3에서 객체 삭제 시도
+        // (null이 아닌 경우에만 s3Service.deleteFile 호출)
         if (imageFile.getS3Key() != null && !imageFile.getS3Key().isEmpty()) {
             s3Service.deleteFile(imageFile.getS3Key());
-            // S3 삭제 실패해도 DB 레코드는 삭제
+            log.info("S3에서 파일 삭제: s3Key={}", imageFile.getS3Key());
         } else {
-            log.info("외부 URL 이미지이거나 S3 키가 없어 S3에서 파일을 삭제하지 않습니다. ImageFile ID: {}", imageFileId);
+            log.info("S3 키가 없어 S3에서 파일을 삭제하지 않습니다. ImageFile ID: {}", imageFileId);
         }
 
         // DB에서 ImageFile 레코드 삭제
@@ -124,6 +126,7 @@ public class ImageFileService {
     /**
      * 외부 URL (예: OAuth 프로필 이미지)을 받아 ImageFile 엔티티를 생성하여 DB에 저장합니다.
      * 이 메서드는 S3에 실제로 파일을 업로드하지 않습니다.
+     * 소셜 로그인에서 더 이상 사용하지 않고, 수동으로 외부 이미지를 등록할 때만 사용될 수 있습니다.
      *
      * @param imageUrl   외부 이미지 URL
      * @param domainType 이미지가 속할 도메인 유형
@@ -141,6 +144,16 @@ public class ImageFileService {
                 .domainId(domainId)
                 .build();
         return imageFileRepository.save(imageFile);
+    }
+
+    /**
+     * S3 키를 사용하여 ImageFile 엔티티를 조회합니다.
+     * (예: DefaultImages의 S3 키로 기본 ImageFile을 찾을 때 사용)
+     * @param s3Key S3 객체 키
+     * @return 조회된 ImageFile Optional
+     */
+    public Optional<ImageFile> getImageFileByS3Key(String s3Key) {
+        return imageFileRepository.findByS3Key(s3Key);
     }
 
     // ImageFile ID로 이미지 정보를 조회하는 메서드

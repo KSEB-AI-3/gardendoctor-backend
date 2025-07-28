@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -46,6 +47,7 @@ public class NotificationController {
     @GetMapping
     public ResponseEntity<Page<NotificationResponseDto>> getMyNotifications(
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @ParameterObject
             @Parameter(description = "페이징 정보 (기본: page=0, size=10, sort=createdAt,desc)")
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
@@ -59,21 +61,21 @@ public class NotificationController {
     /**
      * 사용자 알림 생성 및 FCM 발송 (관리자 전용)
      * POST /api/notifications/{userId}
-     * @param userId 알림을 받을 사용자 ID
+     * @param customUserDetails 알림을 받을 사용자 ID
      * @param requestDto 알림 제목과 내용을 담은 DTO
      * @return 성공 시 200 OK
      */
     @Operation(summary = "사용자 알림 생성 및 FCM 발송 (관리자 전용)", description = "특정 사용자에게 알림을 생성하고 FCM 푸시 알림을 발송합니다. **관리자만 접근 가능합니다.**")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "알림 생성 및 발송 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터 (예: userId가 비어있거나 없음)"),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
-            @ApiResponse(responseCode = "403", description = "권한 없음"), // 관리자 권한 없을 때
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "요청된 사용자 ID 중 해당하는 유저가 없는 경우")
     })
-    @PostMapping("/{userId}")
+    @PostMapping("/admin/send")
     public ResponseEntity<Void> createNotification(
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails customUserDetails, // 관리자 확인용 추가
-            @Parameter(description = "알림을 받을 사용자 ID", example = "1") @PathVariable Long userId,
             @RequestBody @Valid NotificationRequestDto requestDto) {
 
         if (customUserDetails == null || customUserDetails.getUser() == null) {
@@ -82,11 +84,10 @@ public class NotificationController {
 
         // 현재 로그인한 사용자가 ADMIN 역할인지 확인
         if (customUserDetails.getUser().getRole() != UserRole.ADMIN) {
-            // Spring Security의 AccessDeniedException을 던지거나, 사용자 정의 AccessDeniedException을 던질 수 있습니다.
-            throw new AccessDeniedException("Only administrators can create notifications for other users.");
+            throw new AccessDeniedException("관리자만 사용자에게 알림을 보낼 수 있습니다.");
         }
 
-        notificationService.createAndSendNotificationFromDto(userId, requestDto);
+        notificationService.createAndSendNotificationFromDto(requestDto);
         return ResponseEntity.ok().build();
     }
 

@@ -1,0 +1,48 @@
+<!-- src/main/resources/templates/logindashboard.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>테스트 로그인</title>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 100px; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+        button { padding: 10px 20px; margin: 10px; }
+        .social-btn { margin: 15px 0; }
+    </style>
+</head>
+<body>
+<h1>웹 로그인 테스트</h1>
+
+<!-- 일반 로그인 -->
+<form method="post" action="/auth/login">
+    <div>
+        <input type="text" name="username" placeholder="아이디" required/>
+    </div>
+    <div>
+        <input type="password" name="password" placeholder="비밀번호" required/>
+    </div>
+    <div>
+        <button type="submit">로그인</button>
+    </div>
+</form>
+
+<!-- 소셜 로그인 -->
+<div class="social-btn">
+    <a href="/oauth2/authorization/google">
+        <button>Google 로그인</button>
+    </a>
+</div>
+<div class="social-btn">
+    <a href="/oauth2/authorization/naver">
+        <button>Naver 로그인</button>
+    </a>
+</div>
+<div class="social-btn">
+    <a href="/oauth2/authorization/kakao">
+        <button>Kakao 로그인</button>
+    </a>
+</div>
+
+</body>
+</html>

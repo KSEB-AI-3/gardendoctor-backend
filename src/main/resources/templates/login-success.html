@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>로그인 성공</title>
+</head>
+<body>
+<h1>로그인 성공</h1>
+<p>Access Token: <span id="accessToken"></span></p>
+<p>Refresh Token: <span id="refreshToken"></span></p>
+
+<script>
+    // URL에서 토큰 파라미터 꺼내기
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get("accessToken");
+    const refreshToken = params.get("refreshToken");
+
+    if (accessToken && refreshToken) {
+        // 화면에 표시
+        document.getElementById("accessToken").textContent = accessToken;
+        document.getElementById("refreshToken").textContent = refreshToken;
+
+        // 로컬스토리지에 저장 (나중에 API 호출할 때 사용)
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+
+        console.log("토큰 저장 완료!");
+    } else {
+        document.body.insertAdjacentHTML('beforeend', '<p style="color:red;">토큰이 없습니다.</p>');
+    }
+</script>
+</body>
+</html>

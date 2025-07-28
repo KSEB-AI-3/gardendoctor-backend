@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // --- 1. 인증 없이 허용 (permitAll()) ---
                         .requestMatchers("/auth/register").permitAll()
-                        .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/auth/login", "/logindashboard", "/login-success").permitAll()
                         .requestMatchers("/auth/token/refresh").permitAll()
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers("/api/notify/test").permitAll()

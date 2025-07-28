@@ -205,4 +205,52 @@ public class AuthController {
         authService.deleteMyPageInfo(userId);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "프로필 이미지 변경/삭제", description = "로그인한 사용자의 프로필 이미지를 변경하거나 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "프로필 이미지 변경/삭제 성공",
+                    content = @Content(schema = @Schema(implementation = UserMyPageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효성 검증 실패 또는 존재하지 않는 이미지 파일 ID)",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class)))
+    })
+    @SecurityRequirement(name = "jwtAuth")
+    @PatchMapping("/me/profile-image")
+    public ResponseEntity<UserMyPageResponseDto> updateProfileImage(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Valid @RequestBody ProfileImageUpdateRequestDto requestDto) { // 이 DTO는 위에 예시로 제시된 DTO를 사용한다고 가정
+        Long userId = customUserDetails.getUser().getUserId();
+        UserMyPageResponseDto updated = authService.updateProfileImage(
+                userId,
+                requestDto.getProfileImageFileId()
+        );
+        return ResponseEntity.ok(updated);
+    }
+
+    @Operation(summary = "닉네임 변경", description = "로그인한 사용자의 닉네임을 변경합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "닉네임 변경 성공",
+                    content = @Content(schema = @Schema(implementation = UserMyPageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효성 검증 실패)",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class)))
+    })
+    @SecurityRequirement(name = "jwtAuth")
+    @PatchMapping("/me/nickname")
+    public ResponseEntity<UserMyPageResponseDto> updateNickname(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Valid @RequestBody NicknameUpdateRequestDto requestDto) {
+        Long userId = customUserDetails.getUser().getUserId();
+        UserMyPageResponseDto updated = authService.updateNickname(userId, requestDto.getNewNickname());
+        return ResponseEntity.ok(updated);
+    }
+
 }

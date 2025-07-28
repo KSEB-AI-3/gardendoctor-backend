@@ -39,18 +39,19 @@ public class DiaryController {
      * 새로운 일지 생성
      * POST /api/diaries
      * @param customUserDetails 현재 로그인한 사용자 (인증 정보에서 추출)
-     * @param request 일지 생성 요청 DTO (JSON 데이터)
+     * @param diaryRequest 일지 생성 요청 DTO (JSON 데이터)
      * @param imageFile 업로드할 이미지 파일 (선택 사항)
      * @return 생성된 일지 응답 DTO
      */
     @Operation(
             summary = "새 일지 생성",
             description = """
-                새로운 일지를 생성합니다.
-                - `request`: JSON 형식의 DiaryRequest
-                - `imageFile`: 첨부 이미지 (선택)
-                **주의:** `Content-Type`은 `multipart/form-data`로 설정하여 업로드하세요.
-                """,
+        새로운 일지를 생성합니다.
+        - `request`: JSON 형식의 DiaryRequest
+        - `imageFile`: 첨부 이미지 (선택)
+        **주의:** Content-Type은 multipart/form-data로 설정하여 업로드하세요.
+        request는 JSON 문자열로 전송해야 합니다.
+        """,
             responses = {
                     @ApiResponse(responseCode = "201", description = "일지 생성 성공", content = @Content(schema = @Schema(implementation = DiaryResponse.class))),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
@@ -60,7 +61,7 @@ public class DiaryController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DiaryResponse> createDiary(
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @RequestPart("request") @Valid DiaryRequest request,
+            @RequestPart("diaryRequest") @Valid DiaryRequest diaryRequest,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
         if (customUserDetails == null) {
@@ -69,13 +70,13 @@ public class DiaryController {
 
         Diary diary = diaryService.createDiary(
                 customUserDetails.getUser(),
-                request.getTitle(),
-                request.getContent(),
+                diaryRequest.getTitle(),
+                diaryRequest.getContent(),
                 imageFile,
-                request.getWatered(),
-                request.getPruned(),
-                request.getFertilized(),
-                request.getSelectedUserPlantIds()
+                diaryRequest.getWatered(),
+                diaryRequest.getPruned(),
+                diaryRequest.getFertilized(),
+                diaryRequest.getSelectedUserPlantIds()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(new DiaryResponse(diary));
     }

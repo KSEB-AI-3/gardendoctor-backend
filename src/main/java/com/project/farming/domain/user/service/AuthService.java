@@ -125,7 +125,7 @@ public class AuthService {
         if (jwtBlacklistService.isBlacklisted(refreshTokenString)) {
             log.warn("블랙리스트에 등록된 리프레시 토큰이 재사용되었습니다. 사용자 ID {}의 모든 리프레시 토큰을 삭제합니다.", userId);
             userRepository.findById(userId)
-                    .ifPresent(user -> refreshTokenRepository.deleteByUser(user));
+                    .ifPresent(refreshTokenRepository::deleteByUser);
             throw new IllegalArgumentException("비정상적인 접근입니다. 재로그인이 필요합니다.");
         }
 
@@ -253,5 +253,85 @@ public class AuthService {
         // ImageFileService.getImagesByDomainAndId(ImageDomainType.JOURNAL, userId) 등을 사용하여 처리해야 합니다.
         // 이는 복잡해질 수 있으므로, 보통 이미지를 S프트 삭제하거나 별도의 정기적인 클리너 작업을 통해 처리하기도 합니다.
         userRepository.deleteById(userId);
+    }
+
+    /**
+     * 사용자의 프로필 이미지를 업데이트하거나 삭제합니다.
+     *
+     * @param userId             사용자 ID
+     * @param newProfileImageFileId 새로운 프로필 이미지 파일의 ID (null이면 기존 이미지 삭제
+     * @return 업데이트된 사용자 정보 DTO
+     * @throws UserNotFoundException  사용자를 찾을 수 없을 때
+     * @throws IllegalArgumentException 존재하지 않는 이미지 파일 ID를 제공했을 때
+     */
+    @Transactional
+    public UserMyPageResponseDto updateProfileImage(Long userId, Long newProfileImageFileId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        // 새 프로필 이미지 파일 ID가 제공된 경우 (이미지 변경)
+        if (newProfileImageFileId != null) {
+            ImageFile newProfileImage = imageFileRepository.findById(newProfileImageFileId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이미지 파일입니다: " + newProfileImageFileId));
+
+            // 기존 프로필 이미지가 있다면 삭제
+            if (user.getProfileImageFile() != null) {
+                imageFileService.deleteImage(user.getProfileImageFile().getImageFileId());
+            }
+            user.updateProfileImageFile(newProfileImage);
+            log.info("사용자 ID {}의 프로필 이미지가 {}로 업데이트되었습니다. 기존 이미지 삭제됨.", userId, newProfileImageFileId);
+        } else {
+            // 새 프로필 이미지 파일 ID가 null인 경우: 기존 프로필 이미지 삭제
+            if (user.getProfileImageFile() != null) {
+                imageFileService.deleteImage(user.getProfileImageFile().getImageFileId());
+                user.updateProfileImageFile(null); // User 엔티티의 참조도 null로 설정
+                log.info("사용자 ID {}의 프로필 이미지가 삭제되었습니다.", userId);
+            } else {
+                log.info("사용자 ID {}는 기존 프로필 이미지가 없어 삭제 작업을 건너뜁니다.", userId);
+            }
+        }
+
+        // 변경된 사용자 정보를 DTO로 변환하여 반환
+        return UserMyPageResponseDto.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImageUrl((user.getProfileImageFile() != null) ? user.getProfileImageFile().getImageUrl() : null)
+                .oauthProvider(user.getOauthProvider())
+                .role(user.getRole())
+                .subscriptionStatus(user.getSubscriptionStatus())
+                .build();
+    }
+
+    /**
+     * 사용자의 닉네임을 변경합니다.
+     *
+     * @param userId   사용자 ID
+     * @param newNickname 새로운 닉네임
+     * @return 업데이트된 사용자 정보 DTO
+     * @throws UserNotFoundException 사용자를 찾을 수 없을 때
+     */
+    @Transactional
+    public UserMyPageResponseDto updateNickname(Long userId, String newNickname) {
+        if (newNickname == null || newNickname.trim().isEmpty()) {
+            throw new IllegalArgumentException("닉네임은 비어있을 수 없습니다.");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        user.updateNickname(newNickname);
+        log.info("사용자 ID {}의 닉네임이 {}로 변경되었습니다.", userId, newNickname);
+
+        // 변경된 사용자 정보를 DTO로 변환하여 반환
+        return UserMyPageResponseDto.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImageUrl((user.getProfileImageFile() != null) ? user.getProfileImageFile().getImageUrl() : null)
+                .oauthProvider(user.getOauthProvider())
+                .role(user.getRole())
+                .subscriptionStatus(user.getSubscriptionStatus())
+                .build();
     }
 }

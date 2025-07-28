@@ -27,9 +27,6 @@ public class DiaryRequest {
     @Schema(description = "일지 내용", example = "드디어 토마토에 작은 열매가 보이기 시작했어요. 너무 신기하네요.")
     private String content;
 
-    // --- 기존 imageUrl 필드 제거 ---
-    // private String imageUrl;
-
     @NotNull(message = "물주기 여부는 필수 입력 사항입니다.")
     @Schema(description = "물주기 여부", example = "true")
     private Boolean watered; // boolean 대신 Boolean을 사용하여 null 허용 여부를 명확히 할 수 있음
