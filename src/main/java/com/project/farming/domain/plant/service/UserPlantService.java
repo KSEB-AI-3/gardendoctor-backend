@@ -248,7 +248,7 @@ public class UserPlantService {
      * 식물 종류 설정
      *
      * @param oldPlantName 원래 식물 이름(Plant)
-     * @param requestPlantName 사용자가 작성한 식물 이름(Other)
+     * @param requestPlantName 사용자가 작성한 식물 이름(other)
      * @return 설정된 식물 이름
      */
     private String getPlantName(String oldPlantName, String requestPlantName) {
