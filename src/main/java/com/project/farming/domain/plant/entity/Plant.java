@@ -19,9 +19,9 @@ public class Plant {
     private Long plantId;
 
     @Column(unique = true, nullable = false)
-    private String name;
+    private String plantName;
 
-    private String englishName;
+    private String plantEnglishName;
     private String species;
     private String season;
 
@@ -42,10 +42,12 @@ public class Plant {
         this.updatedAt = LocalDate.now();
     }
 
-    public void updatePlant(String name, String englishName,
-                            String species, String season) {
-        this.name = name;
-        this.englishName = englishName;
+    public void updatePlantInfo(
+            String plantName, String plantEnglishName,
+            String species, String season) {
+        
+        this.plantName = plantName;
+        this.plantEnglishName = plantEnglishName;
         this.species = species;
         this.season = season;
     }

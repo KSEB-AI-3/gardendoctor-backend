@@ -9,9 +9,9 @@ import lombok.Setter;
 @Builder
 public class PlantResponse {
     private Long plantId;
-    private String name;
-    private String englishName;
+    private String plantName;
+    private String plantEnglishName;
     private String species;
     private String season;
-    private String imageUrl;
+    private String plantImageUrl;
 }

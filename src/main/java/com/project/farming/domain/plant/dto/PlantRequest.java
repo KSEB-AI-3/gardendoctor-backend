@@ -9,9 +9,9 @@ import lombok.Setter;
 public class PlantRequest {
 
     @NotBlank(message = "식물의 이름을 입력해주세요.")
-    private String name;
+    private String plantName;
 
-    private String englishName;
+    private String plantEnglishName;
     private String species;
     private String season;
 }
