@@ -55,6 +55,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/alarms/**").authenticated()
                         .requestMatchers("/users/profile/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/users/fcm-token").authenticated()
+                        // --- 3. 접근 제한 (hasRole("ADMIN")) ---
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**").hasRole("ADMIN") // 관리자 페이지
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
