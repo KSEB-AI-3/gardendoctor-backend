@@ -17,7 +17,7 @@ public class WebController {
 
     @GetMapping({"/", "/home"})
     public String home() {
-        return "admin/index";
+        return "home";
     }
 
     @GetMapping("/map")
