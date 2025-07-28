@@ -2,9 +2,7 @@ package com.project.farming.global.image.service;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.project.farming.global.exception.ImageUploadException;
 import com.project.farming.global.image.entity.DefaultImages;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +30,6 @@ public class S3Service {
 
         try {
             amazonS3.putObject(bucketName, s3Key, file.getInputStream(), metadata);
-            //amazonS3.putObject(new PutObjectRequest(bucketName, s3Key, file.getInputStream(), metadata)
-            //        .withCannedAcl(CannedAccessControlList.PublicRead)); // 에러
-            // Public Read 권한 부여 (필요에 따라 Private으로 변경 후 Pre-signed URL 사용)
         } catch (AmazonServiceException | IOException e) {
             log.error("S3 파일 업로드 중 오류 발생: {}", e.getMessage());
             throw new ImageUploadException("이미지 업로드에 실패했습니다.");

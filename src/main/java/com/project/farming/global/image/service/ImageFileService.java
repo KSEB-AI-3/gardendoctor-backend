@@ -60,24 +60,24 @@ public class ImageFileService {
     /**
      * S3에 업로드된 이미지를 수정하고, ImageFile 엔티티를 수정하여 DB에 저장합니다.
      *
-     * @param imageFileId   수정할 ImageFile의 ID
-     * @param newFile       업로드할 새로운 이미지 파일
-     * @param domainType    이미지가 속할 도메인 유형 (예: ImageDomainType.PLANT)
-     * @param domainId      이미지가 속할 도메인 엔티티의 ID
+     * @param oldImageFileId 수정할 ImageFile의 ID
+     * @param newFile 업로드할 새로운 이미지 파일
+     * @param domainType 이미지가 속할 도메인 유형 (예: ImageDomainType.PLANT)
+     * @param domainId 이미지가 속할 도메인 엔티티의 ID
      * @return 수정된 ImageFile 엔티티
      */
     @Transactional
     public ImageFile updateImage(
-            Long imageFileId,
+            Long oldImageFileId,
             MultipartFile newFile, ImageDomainType domainType, Long domainId) {
 
-        ImageFile oldImageFile = imageFileRepository.findById(imageFileId)
-                .orElseThrow(() -> new ImageFileNotFoundException("존재하지 않는 이미지 파일입니다: " + imageFileId));
+        ImageFile oldImageFile = imageFileRepository.findById(oldImageFileId)
+                .orElseThrow(() -> new ImageFileNotFoundException("존재하지 않는 이미지 파일입니다: " + oldImageFileId));
         String oldImageS3Key = oldImageFile.getS3Key();
 
         // 기본 이미지 수정 방지(S3, imageFile DB)
         if (DefaultImages.isDefaultImage(oldImageS3Key)) {
-            log.info("기본 이미지는 수정할 수 없습니다: {}", imageFileId);
+            log.info("기본 이미지는 수정할 수 없습니다: {}", oldImageFileId);
             return uploadImage(newFile, domainType, domainId);
         }
 
@@ -163,5 +163,15 @@ public class ImageFileService {
         }
         // 기본 구조를 사용하려면: UUID.randomUUID().toString() + fileExtension;
         return domainType.name().toLowerCase() + "/" + domainId + "/" + UUID.randomUUID() + fileExtension;
+    }
+
+    /**
+     * ImageFileDataInitializer에서 사용
+     *
+     * @param imageFileList 저장할 기본 이미지 목록
+     */
+    @Transactional
+    public void saveDefaultImages(List<ImageFile> imageFileList) {
+        imageFileRepository.saveAll(imageFileList);
     }
 }

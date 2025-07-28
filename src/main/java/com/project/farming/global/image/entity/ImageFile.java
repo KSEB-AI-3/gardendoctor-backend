@@ -6,7 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "image_files", indexes = {
         @Index(name = "idx_covering_image_file",
-                columnList = "image_file_id, domain_type, domain_id, image_url")
+                columnList = "image_file_id, image_url, domain_type, domain_id")
 })
 @Getter
 @Builder
@@ -19,14 +19,14 @@ public class ImageFile {
     @Column(name = "image_file_id")
     private Long imageFileId;
 
-    @Column(length = 255)
-    private String originalImageName; // 원본 파일명 (S3 업로드 시 사용)
+    @Column
+    private String originalImageName; // 원본 파일명
 
-    @Column(unique = true, length = 255)
-    private String s3Key; // S3에 저장된 파일명 (S3 Key로 사용)
+    @Column(unique = true)
+    private String s3Key; // S3에 저장된 파일명
 
     @Column(nullable = false, length = 512) // URL 길이를 넉넉하게
-    private String imageUrl; // S3 URL 또는 외부 이미지 URL
+    private String imageUrl; // S3 이미지 URL 또는 외부 이미지 URL
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
@@ -35,7 +35,6 @@ public class ImageFile {
     @Column(nullable = false)
     private Long domainId;
 
-    // 업데이트 메서드들
     public void updateOriginalImageName(String originalImageName) {
         this.originalImageName = originalImageName;
     }
