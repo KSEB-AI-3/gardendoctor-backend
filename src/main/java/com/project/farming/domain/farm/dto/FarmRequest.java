@@ -14,15 +14,14 @@ public class FarmRequest {
     private Integer gardenUniqueId; // 텃밭 고유번호
 
     private String operator; // 운영주체
-    private String name;
+    private String farmName;
     private String roadNameAddress; // 도로명주소
     private String lotNumberAddress; // 지번주소
-    private String facilities;
-    private Boolean available;
+    private String facilities; // 부대시설
     private String contact; // 신청방법
     private Double latitude; // 위도
     private Double longitude; // 경도
+    private Boolean available;
     private LocalDate createdAt;
     private LocalDate updatedAt;
-    private String imageUrl;
 }

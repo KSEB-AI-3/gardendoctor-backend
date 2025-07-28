@@ -1,5 +1,6 @@
 package com.project.farming.domain.farm.entity;
 
+import com.project.farming.global.image.entity.ImageFile;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,24 +14,29 @@ import java.time.LocalDate;
 @Builder
 public class Farm {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long farmId;
 
     @Column(unique = true, nullable = false)
     private Integer gardenUniqueId; // 텃밭 고유번호
 
     private String operator; // 운영주체
-    private String name;
+    private String farmName;
     private String roadNameAddress; // 도로명주소
     private String lotNumberAddress; // 지번주소
-    private String facilities;
-    private Boolean available;
+    private String facilities; // 부대시설
     private String contact; // 신청방법
     private Double latitude; // 위도
     private Double longitude; // 경도
+    private Boolean available;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "farm_image_file_id", nullable = false)
+    private ImageFile farmImageFile;
+
     private LocalDate createdAt;
     private LocalDate updatedAt;
-    private String imageUrl; // 추가하기
 
     @PrePersist
     protected void onCreate() {
@@ -44,21 +50,24 @@ public class Farm {
     }
 
     public void updateFarmInfo(
-            Integer gardenUniqueId, String operator, String name,
+            Integer gardenUniqueId, String operator, String farmName,
             String roadNameAddress, String lotNumberAddress,
-            String facilities, Boolean available, String contact,
-            Double latitude, Double longitude, String imageUrl) {
+            String facilities, String contact,
+            Double latitude, Double longitude, Boolean available) {
 
         this.gardenUniqueId = gardenUniqueId;
         this.operator = operator;
-        this.name = name;
+        this.farmName = farmName;
         this.roadNameAddress = roadNameAddress;
         this.lotNumberAddress = lotNumberAddress;
         this.facilities = facilities;
-        this.available = available;
         this.contact = contact;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.imageUrl = imageUrl;
+        this.available = available;
+    }
+
+    public void updateFarmImage(ImageFile farmImageFile) {
+        this.farmImageFile = farmImageFile;
     }
 }
