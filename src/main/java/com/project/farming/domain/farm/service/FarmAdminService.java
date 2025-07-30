@@ -58,7 +58,7 @@ public class FarmAdminService {
         Farm savedFarm = farmRepository.save(newFarm);
         Long farmId = savedFarm.getFarmId();
 
-        if (!file.isEmpty()) {
+        if (file != null && !file.isEmpty()) {
             // 이미지 파일이 첨부되어 있는 경우
             ImageFile imageFile = imageFileService.uploadImage(file, ImageDomainType.FARM, farmId);
             savedFarm.updateFarmImage(imageFile);
@@ -103,7 +103,7 @@ public class FarmAdminService {
     @Transactional
     public void updateFarm(Long farmId, FarmAdminRequest request, MultipartFile newFile) {
         Farm farm = findFarmById(farmId);
-        if (!newFile.isEmpty()) {
+        if (newFile != null && !newFile.isEmpty()) {
             // 새로운 이미지 파일이 첨부되어 있는 경우
             ImageFile imageFile = imageFileService.updateImage(
                     farm.getFarmImageFile().getImageFileId(), // 기존 이미지 파일

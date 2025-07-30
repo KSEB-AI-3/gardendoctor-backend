@@ -73,7 +73,7 @@ public class UserPlantService {
         UserPlant savedUserPlant = userPlantRepository.save(newUserPlant);
         Long userPlantId = savedUserPlant.getUserPlantId();
 
-        if (!file.isEmpty()) {
+        if (file != null && !file.isEmpty()) {
             // 이미지 파일이 첨부되어 있는 경우
             ImageFile imageFile = imageFileService.uploadImage(file, ImageDomainType.USERPLANT, userPlantId);
             savedUserPlant.updateUserPlantImage(imageFile);
@@ -146,7 +146,7 @@ public class UserPlantService {
 
         User user = findUserById(userId);
         UserPlant userPlant = findUserPlantByUserAndUserPlantId(user, userPlantId);
-        if (!newFile.isEmpty()) {
+        if (newFile != null && !newFile.isEmpty()) {
             // 새로운 이미지 파일이 첨부되어 있는 경우
             ImageFile imageFile = imageFileService.updateImage(
                     userPlant.getUserPlantImageFile().getImageFileId(), // 기존 이미지 파일

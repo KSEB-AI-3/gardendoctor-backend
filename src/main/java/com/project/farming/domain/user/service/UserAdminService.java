@@ -84,7 +84,7 @@ public class UserAdminService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
 
-        if (!newFile.isEmpty()) {
+        if (newFile != null && !newFile.isEmpty()) {
             // 새로운 이미지 파일이 첨부되어 있는 경우
             ImageFile imageFile = imageFileService.updateImage(
                     user.getProfileImageFile().getImageFileId(), // 기존 이미지 파일
