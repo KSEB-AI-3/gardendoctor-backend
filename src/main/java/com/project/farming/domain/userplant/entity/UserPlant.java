@@ -1,6 +1,7 @@
-package com.project.farming.domain.plant.entity;
+package com.project.farming.domain.userplant.entity;
 
 import com.project.farming.domain.farm.entity.Farm;
+import com.project.farming.domain.plant.entity.Plant;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.global.image.entity.ImageFile;
 import jakarta.persistence.*;

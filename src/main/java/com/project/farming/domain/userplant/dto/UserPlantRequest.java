@@ -1,4 +1,4 @@
-package com.project.farming.domain.plant.dto;
+package com.project.farming.domain.userplant.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

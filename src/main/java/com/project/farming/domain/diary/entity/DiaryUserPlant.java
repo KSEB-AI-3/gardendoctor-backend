@@ -1,6 +1,6 @@
 package com.project.farming.domain.diary.entity;
 
-import com.project.farming.domain.plant.entity.UserPlant;
+import com.project.farming.domain.userplant.entity.UserPlant;
 import jakarta.persistence.*;
 import lombok.*;
 

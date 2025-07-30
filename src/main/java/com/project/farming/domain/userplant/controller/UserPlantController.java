@@ -1,8 +1,8 @@
-package com.project.farming.domain.plant.controller;
+package com.project.farming.domain.userplant.controller;
 
-import com.project.farming.domain.plant.dto.UserPlantRequest;
-import com.project.farming.domain.plant.dto.UserPlantResponse;
-import com.project.farming.domain.plant.service.UserPlantService;
+import com.project.farming.domain.userplant.dto.UserPlantRequest;
+import com.project.farming.domain.userplant.service.UserPlantService;
+import com.project.farming.domain.userplant.dto.UserPlantResponse;
 import com.project.farming.global.jwtToken.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -40,10 +40,10 @@ public class UserPlantController {
     public ResponseEntity<UserPlantResponse> createUserPlant(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Parameter(description = "사용자 식물 정보(JSON)")
+            @Parameter(description = "사용자 식물 정보(JSON), 식물(Plant) 입력은 한글, 영어(소문자) 모두 가능합니다.")
             @Valid @RequestPart("data") UserPlantRequest request,
             @Parameter(description = "업로드할 사용자 식물 이미지 파일")
-            @RequestPart("file") MultipartFile file) {
+            @RequestPart(value = "file", required = false) MultipartFile file) {
         Long userId = customUserDetails.getUser().getUserId();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(userPlantService.saveUserPlant(userId, request, file));
@@ -96,7 +96,7 @@ public class UserPlantController {
             @Parameter(description = "사용자 식물 정보(JSON)")
             @Valid @RequestPart("data") UserPlantRequest request,
             @Parameter(description = "업로드할 사용자 식물 이미지 파일")
-            @RequestPart("file") MultipartFile file) {
+            @RequestPart(value = "file", required = false) MultipartFile file) {
         Long userId = customUserDetails.getUser().getUserId();
         return ResponseEntity.ok(userPlantService.updateUserPlant(userId, userPlantId, request, file));
     }

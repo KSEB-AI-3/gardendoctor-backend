@@ -1,13 +1,13 @@
-package com.project.farming.domain.plant.service;
+package com.project.farming.domain.userplant.service;
 
 import com.project.farming.domain.farm.entity.Farm;
 import com.project.farming.domain.farm.repository.FarmRepository;
-import com.project.farming.domain.plant.dto.UserPlantRequest;
-import com.project.farming.domain.plant.dto.UserPlantResponse;
+import com.project.farming.domain.userplant.dto.UserPlantRequest;
+import com.project.farming.domain.userplant.dto.UserPlantResponse;
 import com.project.farming.domain.plant.entity.Plant;
-import com.project.farming.domain.plant.entity.UserPlant;
+import com.project.farming.domain.userplant.entity.UserPlant;
 import com.project.farming.domain.plant.repository.PlantRepository;
-import com.project.farming.domain.plant.repository.UserPlantRepository;
+import com.project.farming.domain.userplant.repository.UserPlantRepository;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.domain.user.repository.UserRepository;
 import com.project.farming.global.exception.*;
@@ -189,6 +189,7 @@ public class UserPlantService {
             UserPlant userPlant, boolean includeDetails, boolean includePlantDetails) {
 
         UserPlantResponse.UserPlantResponseBuilder builder = UserPlantResponse.builder()
+                .userPlantId(userPlant.getUserPlantId())
                 .plantName(userPlant.getPlantName())
                 .plantNickname(userPlant.getPlantNickname())
                 .plantingPlace(userPlant.getPlantingPlace())
@@ -235,7 +236,7 @@ public class UserPlantService {
     /**
      * 식물 이름으로 식물(Plant) 정보 조회
      *
-     * @param plantName 조회할 식물의 이름
+     * @param plantName 조회할 식물의 이름(한글, 영어)
      * @return 조회한 식물(Plant) 정보
      */
     private Plant findPlantByPlantName(String plantName) {

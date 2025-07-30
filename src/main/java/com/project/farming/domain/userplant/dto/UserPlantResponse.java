@@ -1,4 +1,4 @@
-package com.project.farming.domain.plant.dto;
+package com.project.farming.domain.userplant.dto;
 
 import lombok.Builder;
 import lombok.Getter;

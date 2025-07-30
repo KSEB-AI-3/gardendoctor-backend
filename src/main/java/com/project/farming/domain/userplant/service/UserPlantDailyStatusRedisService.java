@@ -1,4 +1,4 @@
-package com.project.farming.domain.plant.service;
+package com.project.farming.domain.userplant.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.BoundHashOperations;

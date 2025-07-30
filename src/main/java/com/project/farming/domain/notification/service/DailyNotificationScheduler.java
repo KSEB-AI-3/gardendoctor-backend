@@ -1,9 +1,8 @@
 // src/main/java/com/project/farming/domain/notification/scheduler/DailyNotificationScheduler.java
-package com.project.farming.domain.notification.scheduler; // 패키지 변경 권장
+package com.project.farming.domain.notification.service; // 패키지 변경 권장
 
-import com.project.farming.domain.notification.service.NotificationService;
-import com.project.farming.domain.plant.entity.UserPlant;
-import com.project.farming.domain.plant.repository.UserPlantRepository;
+import com.project.farming.domain.userplant.entity.UserPlant;
+import com.project.farming.domain.userplant.repository.UserPlantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundHashOperations;

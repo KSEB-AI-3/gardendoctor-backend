@@ -1,6 +1,6 @@
-package com.project.farming.domain.plant.repository;
+package com.project.farming.domain.userplant.repository;
 
-import com.project.farming.domain.plant.entity.UserPlant;
+import com.project.farming.domain.userplant.entity.UserPlant;
 import com.project.farming.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

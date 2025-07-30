@@ -2,7 +2,7 @@ package com.project.farming.domain.diary.repository;
 
 import com.project.farming.domain.diary.entity.Diary;
 import com.project.farming.domain.user.entity.User;
-import com.project.farming.domain.plant.entity.UserPlant;
+import com.project.farming.domain.userplant.entity.UserPlant;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
