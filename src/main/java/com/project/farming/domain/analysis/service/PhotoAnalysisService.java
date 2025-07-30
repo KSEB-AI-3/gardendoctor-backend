@@ -58,12 +58,9 @@ public class PhotoAnalysisService {
      * - 동일 유저 10초 이내 중복 요청 차단
      */
     @Transactional
-    public PhotoAnalysis analyzePhotoAndSave(Long userId, String cropName, MultipartFile file) {
+    public PhotoAnalysis analyzePhotoAndSave(Long userId, MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("분석을 위해 사진 파일을 반드시 전송해야 합니다.");
-        }
-        if (cropName == null || cropName.trim().isEmpty()) {
-            throw new IllegalArgumentException("분석을 위해 cropName을 반드시 전송해야 합니다.");
         }
 
         User user = userRepository.findById(userId)
@@ -78,7 +75,7 @@ public class PhotoAnalysisService {
         ImageFile uploadedImage = imageFileService.uploadImage(file, ImageDomainType.PHOTO, userId);
 
         // 2) AI 서버 분석 요청
-        AnalysisRequest request = new AnalysisRequest(cropName, uploadedImage.getImageUrl());
+        AnalysisRequest request = new AnalysisRequest(uploadedImage.getImageUrl());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 

@@ -45,12 +45,11 @@ public class PhotoAnalysisController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
 
             @Parameter(description = "업로드할 이미지 파일 (분석 대상)", required = true)
-            @RequestPart("CropName") String cropName,
             @RequestPart("file") MultipartFile file) {
 
         Long userId = userDetails.getUser().getUserId();
 
-        PhotoAnalysis saved = photoAnalysisService.analyzePhotoAndSave(userId, cropName, file);
+        PhotoAnalysis saved = photoAnalysisService.analyzePhotoAndSave(userId, file);
 
         PhotoAnalysisSidebarResponseDto response = PhotoAnalysisSidebarResponseDto.builder()
                 .photoAnalysisId(saved.getPhotoAnalysisId())

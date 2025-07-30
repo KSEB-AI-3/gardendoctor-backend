@@ -39,7 +39,7 @@ public class ChatService {
 
         // 2) Python FastAPI 서버 호출 ({"query": ...} 형태)
         Map<String, String> resp = pythonWebClient.post()
-                .uri("/chat")
+                .uri("/api/chat")
                 .bodyValue(Map.of("query", question))
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {})

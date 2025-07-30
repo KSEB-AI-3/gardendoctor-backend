@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AnalysisRequest {
-    private String cropName;
 
     @JsonProperty("image_url")
     private String imageUrl;
