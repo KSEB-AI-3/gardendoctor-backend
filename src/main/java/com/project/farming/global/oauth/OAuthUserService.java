@@ -29,13 +29,12 @@ public class OAuthUserService {
      * @param oauthId OAuth 제공자로부터 받은 사용자 고유 ID
      * @param email 사용자 이메일
      * @param nickname 사용자 닉네임
-     * @param profileImageUrl 프로필 이미지 URL (소셜 로그인 제공자의 URL. 여기서는 사용하지 않음)
      * @param oauthProvider OAuth 제공자 (google, kakao, naver 등)
      * @return 저장되거나 업데이트된 User 엔티티
      * @throws OAuth2AuthenticationException 이메일 충돌 또는 알 수 없는 오류 발생 시
      */
     @Transactional
-    public User saveOrUpdateUserFromOAuth(String oauthId, String email, String nickname, String profileImageUrl, String oauthProvider) {
+    public User saveOrUpdateUserFromOAuth(String oauthId, String email, String nickname, String oauthProvider) {
         Optional<User> optionalUser = userRepository.findByOauthProviderAndOauthId(oauthProvider, oauthId);
         User user;
 

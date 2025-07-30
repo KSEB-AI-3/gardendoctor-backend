@@ -1,7 +1,6 @@
 package com.project.farming.global.oauth;
 
 import com.project.farming.domain.user.entity.User;
-import com.project.farming.global.image.repository.ImageFileRepository;
 import com.project.farming.global.jwtToken.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,13 +30,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String oauthId;
         String email;
         String nickname = null;
-        String profileImageUrl = null;
 
         if ("google".equals(registrationId)) {
             oauthId = oAuth2User.getName();
             email = oAuth2User.getAttribute("email");
             nickname = oAuth2User.getAttribute("name");
-            profileImageUrl = oAuth2User.getAttribute("picture");
         } else if ("kakao".equals(registrationId)) {
             Long kakaoId = oAuth2User.getAttribute("id");
             oauthId = String.valueOf(kakaoId);
@@ -56,7 +53,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
                 if (profile != null) {
                     nickname = (String) profile.get("nickname");
-                    profileImageUrl = (String) profile.get("profile_image_url");
                 }
             } else {
                 email = null;
@@ -67,7 +63,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 oauthId = (String) response.get("id");
                 email = (String) response.get("email");
                 nickname = (String) response.get("nickname");
-                profileImageUrl = (String) response.get("profile_image");
             } else {
                 log.warn("Naver OAuth2 response attributes are missing.");
                 oauthId = null;
@@ -84,7 +79,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         // ⭐ 분리된 OAuthUserService의 public 메서드 호출
-        User user = oauthUserService.saveOrUpdateUserFromOAuth(oauthId, email, nickname, profileImageUrl, registrationId);
+        User user = oauthUserService.saveOrUpdateUserFromOAuth(oauthId, email, nickname,registrationId);
 
         return new CustomUserDetails(user, oAuth2User.getAttributes());
     }
