@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>사용자 정보 삭제</title>
+</head>
+<body th:replace="~{layout::layout}">
+<div th:fragment="content">
+  <div>
+    <h1>사용자 정보 삭제</h1>
+    <h3>[[${param.userId}]]번 사용자를 정말 삭제하시겠습니까?</h3>
+    <a th:href="@{/admin/users/delete/{userId}(userId=${param.userId})}">사용자 삭제</a>
+  </div>
+</div>
+</body>
+</html>

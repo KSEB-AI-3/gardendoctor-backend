@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>텃밭 상세 정보</title>
+</head>
+<body th:replace="~{layout::layout}">
+<div th:fragment="content">
+    <h1>텃밭 상세 페이지</h1>
+    <div>
+        <p>텃밭 이미지</p>
+        <img th:src="${farm.farmImageUrl}" width="200" height="200" alt="">
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>farmId</th>
+            <th>gardenUniqueId(텃밭 고유번호)</th>
+            <th>farmName(텃밭명)</th>
+            <th>operator(운영주체)</th>
+            <th>roadNameAddress(도로명주소)</th>
+            <th>lotNumberAddress(지번주소)</th>
+            <th>facilities(부대시설)</th>
+            <th>contact(신청방법)</th>
+            <th>latitude(위도)</th>
+            <th>longitude(경도)</th>
+            <th>available(운영 여부)</th>
+            <th>createdAt(등록일)</th>
+            <th>updatedAt(최종 수정일)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>[[${farm.farmId}]]</td>
+            <td>[[${farm.gardenUniqueId}]]</td>
+            <td>[[${farm.farmName}]]</td>
+            <td>[[${farm.operator}]]</td>
+            <td>[[${farm.roadNameAddress}]]</td>
+            <td>[[${farm.lotNumberAddress}]]</td>
+            <td>[[${farm.facilities}]]</td>
+            <td>[[${farm.contact}]]</td>
+            <td>[[${farm.latitude}]]</td>
+            <td>[[${farm.longitude}]]</td>
+            <td>[[${farm.available}]]</td>
+            <td>[[${farm.createdAt}]]</td>
+            <td>[[${farm.updatedAt}]]</td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="13">
+                <a th:href="@{/admin/farms/update?farmId={farmId}(farmId=${farm.farmId})}">텃밭 정보 수정</a>
+                <a th:href="@{/admin/farms/delete?farmId={farmId}(farmId=${farm.farmId})}">텃밭 정보 삭제</a>
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+</div>
+</body>
+</html>

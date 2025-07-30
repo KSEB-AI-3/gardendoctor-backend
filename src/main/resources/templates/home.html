@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>메인 화면</title>
+</head>
+<body th:replace="~{layout::layout}">
+<div th:fragment="content">
+    <h1>메인 화면</h1>
+    <th:block sec:authorize="isAnonymous()">
+        <div>로그인하지 않은 사용자에게만 보입니다.</div>
+    </th:block>
+
+    <th:block sec:authorize="isAuthenticated()">
+        <div>어떤권한이건 상관없이 인증된(로그인성공) 사용자에게만 보입니다.</div>
+    </th:block>
+
+    <h1>session 객체에 등록된 userId : [[${session.userId}]]</h1>
+
+    <th:block sec:authorize="hasRole('ADMIN')">
+        <div>ADMIN 사용자에게만 보입니다.</div>
+    </th:block>
+
+    <th:block sec:authorize="hasRole('USER')">
+        <div>USER 사용자에게만 보입니다.</div>
+    </th:block>
+</div>
+</body>
+</html>

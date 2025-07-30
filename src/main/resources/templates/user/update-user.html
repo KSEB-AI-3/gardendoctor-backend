@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>사용자 정보 수정</title>
+</head>
+<body th:replace="~{layout::layout}">
+<div th:fragment="content">
+    <h1>사용자 정보 수정</h1>
+    <form action="#" method="post" th:action="@{/admin/users/update/{userId}(userId=${user.userId})}" enctype="multipart/form-data">
+        <table>
+            <tr>
+                <td><label for="id">email(아이디 - 필수):</label></td>
+                <td>
+                    <input type="text" id="id" name="id" th:value="${user.email}">
+                </td>
+            </tr>
+            <tr>
+                <td><label for="nickname">nickname(필수 - 2자 이상 10자 이하):</label></td>
+                <td>
+                    <input type="text" id="nickname" name="nickname" th:value="${user.nickname}">
+                </td>
+            </tr>
+            <tr>
+                <td><label for="oauthProvider">oauthProvider:</label></td>
+                <td>
+                    <input type="text" id="oauthProvider" name="oauthProvider" th:value="${user.oauthProvider}">
+                </td>
+            </tr>
+            <tr>
+                <td><label for="oauthId">oauthId:</label></td>
+                <td>
+                    <input type="text" id="oauthId" name="oauthId" th:value="${user.oauthId}">
+                </td>
+            </tr>
+            <tr>
+                <td><label for="role">권한 설정(기존 - [[${user.role}]]): </label></td>
+                <td>
+                    <select id="role" name="role">
+                        <option value="USER">사용자</option>
+                        <option value="ADMIN">관리자</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="fcmToken">fcmToken:</label></td>
+                <td>
+                    <input type="text" id="fcmToken" name="fcmToken" th:value="${user.fcmToken}">
+                </td>
+            </tr>
+            <tr>
+                <td><label for="subscriptionStatus">subscriptionStatus:</label></td>
+                <td>
+                    <input type="text" id="subscriptionStatus" name="subscriptionStatus" th:value="${user.subscriptionStatus}">
+                </td>
+            </tr>
+            <tr>
+                <td>프로필 이미지:</td>
+                <td>
+                    <img th:src="${user.profileImageUrl}" width="200" height="200" alt="">
+                </td>
+            </tr>
+            <tr>
+                <td><label for="file">이미지 변경:</label></td>
+                <td>
+                    <input type="file" id="file" name="profileImageFile">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input type="submit" value="수정">
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+</body>
+</html>

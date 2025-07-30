@@ -13,7 +13,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -28,13 +27,13 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final AdminAuthenticationSuccessHandler adminAuthenticationSuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
                         // --- 1. 인증 없이 허용 (permitAll()) ---
@@ -44,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers("/api/notify/test").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**",  "/swagger-ui.html").permitAll()
+                        .requestMatchers("/", "/home", "/login").permitAll() // 관리자 페이지 관련
                         // --- 2. 인증 필요 (authenticated()) ---
                         .requestMatchers("/auth/logout").authenticated()
                         .requestMatchers("/auth/user/me").authenticated()
@@ -56,8 +56,7 @@ public class SecurityConfig {
                         .requestMatchers("/users/profile/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/users/fcm-token").authenticated()
                         // --- 3. 접근 제한 (hasRole("ADMIN")) ---
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/admin/**").hasRole("ADMIN") // 관리자 페이지
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -66,12 +65,28 @@ public class SecurityConfig {
                         )
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                 )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/loginProc")
+                        .usernameParameter("id")
+                        .passwordParameter("password")
+                        .successHandler(adminAuthenticationSuccessHandler)
+                        .failureUrl("/login?error=true")
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setContentType("application/json;charset=UTF-8");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"인증이 필요합니다.\"}");
                         })
+                )
+                .sessionManagement(session-> session
+                        .maximumSessions(1)
+                        .expiredUrl("/expired")
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

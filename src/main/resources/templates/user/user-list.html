@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>사용자 목록 조회</title>
+</head>
+<body th:replace="~{layout::layout}">
+<div th:fragment="content">
+    <h1>사용자 목록</h1>
+    <!-- 사용자 이메일(email) 또는 별명(nickname)으로 검색   -->
+    <form method="get" th:action="@{/admin/users/search}">
+        <table>
+            <tr>
+                <td><select name="searchType">
+                    <option value="name">name</option>
+                    <option value="email">email</option>
+                </select></td>
+                <td><input type="text" name="keyword"></td>
+                <td><input type="submit" value="search"></td>
+            </tr>
+        </table>
+    </form>
+
+    <table>
+        <thead>
+        <tr>
+            <th>userId</th>
+            <th>profileImage</th>
+            <th>email</th>
+            <th>nickname</th>
+            <th>oauthProvider</th>
+            <th>oauthId</th>
+            <th>fcmToken</th>
+            <th>subscriptionStatus</th>
+            <th>role</th>
+        </tr>
+        </thead>
+        <tbody>
+        <th:block th:each="user : ${userList}">
+            <tr>
+                <td>[[${user.userId}]]</td>
+                <td>
+                    <img th:src="${user.profileImageUrl}" width="100" height="100" alt="">
+                </td>
+                <td><a th:href="@{/admin/users/{userId}(userId=${user.userId})}">[[${user.email}]]</a></td>
+                <td><a th:href="@{/admin/users/{userId}(userId=${user.userId})}">[[${user.nickname}]]</a></td>
+                <td>[[${user.oauthProvider}]]</td>
+                <td>[[${user.oauthId}]]</td>
+                <td>[[${user.fcmToken}]]</td>
+                <td>[[${user.subscriptionStatus}]]</td>
+                <td>[[${user.role}]]</td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

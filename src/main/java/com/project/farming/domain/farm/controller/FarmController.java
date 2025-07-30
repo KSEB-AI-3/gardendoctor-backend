@@ -29,12 +29,11 @@ public class FarmController {
 
     @GetMapping("/search")
     @Operation(summary = "텃밭 목록 검색",
-            description = "사용자가 입력한 키워드(searchType: 텃밭명(name) 또는 주소(address))를 포함하는 모든 텃밭을 고유번호순으로 조회합니다.")
+            description = "사용자가 입력한 키워드(텃밭명 또는 도로명/지번 주소)를 포함하는 모든 텃밭을 고유번호순으로 조회합니다.")
     public ResponseEntity<List<FarmResponse>> searchFarms(
-            @Parameter(description = "검색 조건: 텃밭명(name) 또는 주소(address)")
-            @RequestParam(defaultValue = "name") String searchType,
+            @Parameter(description = "텃밭명 또는 주소(도로명/지번)")
             @RequestParam String keyword) {
-        return ResponseEntity.ok(farmService.findFarmsByKeyword(searchType, keyword));
+        return ResponseEntity.ok(farmService.findFarmsByKeyword(keyword));
     }
 
     @GetMapping("/{farmId}")

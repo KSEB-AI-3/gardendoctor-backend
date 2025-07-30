@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<nav th:fragment="top_menu">
+    <a th:href="@{/}">메인 화면</a>
+    <th:block sec:authorize="isAnonymous()">
+        <a th:href="@{/login}">로그인</a>
+    </th:block>
+
+    <th:block sec:authorize="hasRole('ADMIN')">
+        <a th:href="@{/logout}">로그아웃</a>
+        <a th:href="@{/admin/users}">사용자 목록</a>
+        <a th:href="@{/admin/farms}">텃밭 목록</a>
+        <a th:href="@{/admin/plants}">식물 목록</a>
+    </th:block>
+    <hr>
+</nav>
+</html>

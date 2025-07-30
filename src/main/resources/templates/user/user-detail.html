@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>사용자 상세 정보</title>
+</head>
+<body th:replace="~{layout::layout}">
+<div th:fragment="content">
+    <h1>사용자 상세 페이지</h1>
+    <div>
+        <p>프로필 이미지</p>
+        <img th:src="${user.profileImageUrl}" width="200" height="200" alt="">
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>userId</th>
+            <th>email</th>
+            <th>nickname</th>
+            <th>oauthProvider</th>
+            <th>oauthId</th>
+            <th>fcmToken</th>
+            <th>subscriptionStatus</th>
+            <th>role</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>[[${user.userId}]]</td>
+            <td>[[${user.email}]]</td>
+            <td>[[${user.nickname}]]</td>
+            <td>[[${user.oauthProvider}]]</td>
+            <td>[[${user.oauthId}]]</td>
+            <td>[[${user.fcmToken}]]</td>
+            <td>[[${user.subscriptionStatus}]]</td>
+            <td>[[${user.role}]]</td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="8">
+                <a th:href="@{/admin/users/update?userId={userId}(userId=${user.userId})}">사용자 정보 수정</a>
+                <a th:href="@{/admin/users/delete?userId={userId}(userId=${user.userId})}">사용자 삭제</a>
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+</div>
+</body>
+</html>

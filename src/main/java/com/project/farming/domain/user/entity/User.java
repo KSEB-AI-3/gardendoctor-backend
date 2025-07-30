@@ -64,6 +64,16 @@ public class User {
         this.subscriptionStatus = subscriptionStatus;
     }
 
+    // 관리자 페이지에서 사용
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
+    // 관리자 페이지에서 사용
+    public void updateRole(UserRole role) {
+        this.role = role;
+    }
+
     // 소셜 로그인 연동 시 사용될 setter (CustomOAuth2UserService에서 호출)
     public void setOauthProvider(String oauthProvider) {
         this.oauthProvider = oauthProvider;
