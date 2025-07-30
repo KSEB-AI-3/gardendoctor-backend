@@ -1,6 +1,6 @@
 package com.project.farming.domain.plant.service;
 
-import com.project.farming.domain.plant.dto.PlantRequest;
+import com.project.farming.domain.plant.dto.PlantAdminRequest;
 import com.project.farming.domain.plant.dto.PlantResponse;
 import com.project.farming.domain.plant.entity.Plant;
 import com.project.farming.domain.plant.repository.PlantRepository;
@@ -38,7 +38,7 @@ public class PlantService {
      * @return 저장된 식물 정보의 Response DTO
      */
     @Transactional
-    public PlantResponse savePlant(PlantRequest request, MultipartFile file) {
+    public PlantResponse savePlant(PlantAdminRequest request, MultipartFile file) {
         if (plantRepository.existsByPlantName(request.getPlantName())) {
             throw new IllegalArgumentException("이미 존재하는 식물입니다: " + request.getPlantName());
         }
@@ -113,7 +113,7 @@ public class PlantService {
      * @return 수정된 식물 정보의 Response DTO
      */
     @Transactional
-    public PlantResponse updatePlant(Long plantId, PlantRequest request, MultipartFile newFile) {
+    public PlantResponse updatePlant(Long plantId, PlantAdminRequest request, MultipartFile newFile) {
         Plant plant = findPlantById(plantId);
         if (!newFile.isEmpty()) {
             // 새로운 이미지 파일이 첨부되어 있는 경우

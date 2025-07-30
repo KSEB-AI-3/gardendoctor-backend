@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PlantRequest {
+public class PlantAdminRequest {
 
     @NotBlank(message = "식물의 이름을 입력해주세요.")
     private String plantName;
