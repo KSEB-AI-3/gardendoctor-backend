@@ -1,11 +1,12 @@
 package com.project.farming.domain.user.service;
 
 import com.project.farming.domain.user.dto.UserMyPageResponseDto;
-import com.project.farming.domain.user.dto.UserMyPageUpdateRequestDto;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.domain.user.entity.UserRole;
 import com.project.farming.domain.user.repository.UserRepository;
 import com.project.farming.global.exception.UserNotFoundException;
+import com.project.farming.global.image.entity.DefaultImages;
+import com.project.farming.global.image.entity.ImageDomainType;
 import com.project.farming.global.jwtToken.JwtBlacklistService;
 import com.project.farming.global.jwtToken.JwtToken;
 import com.project.farming.global.jwtToken.JwtTokenProvider;
@@ -24,6 +25,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -40,13 +42,17 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
     private final ImageFileRepository imageFileRepository;
-    private final ImageFileService imageFileService; // ImageFileService 주입
+    private final ImageFileService imageFileService;
 
     @Transactional
     public User registerUser(String email, String password, String nickname) {
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
+        // DefaultImages 클래스의 상수를 사용하여 s3Key로 엔티티를 조회합니다.
+        ImageFile defaultImageFile = imageFileRepository.findByS3Key(DefaultImages.DEFAULT_USER_IMAGE)
+                .orElseThrow(() -> new IllegalStateException("기본 사용자 이미지가 존재하지 않습니다."));
+
         User newUser = User.builder()
                 .email(email)
                 .nickname(nickname)
@@ -54,6 +60,7 @@ public class AuthService {
                 .oauthProvider("LOCAL") // 자체 회원가입은 "LOCAL"로 구분
                 .role(UserRole.USER)
                 .subscriptionStatus("FREE")
+                .profileImageFile(defaultImageFile)
                 .build();
         return userRepository.save(newUser);
     }
@@ -65,22 +72,16 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(email, password)
             );
 
-            // 인증된 사용자의 이메일로 User 객체를 찾고, User의 PK(userId)를 토큰에 사용
             User user = userRepository.findByEmail(authentication.getName())
                     .orElseThrow(() -> new UsernameNotFoundException("인증된 사용자를 찾을 수 없습니다."));
 
             String accessToken = jwtTokenProvider.generateToken(user.getUserId());
             String refreshTokenString = jwtTokenProvider.generateRefreshToken(user.getUserId());
             long refreshTokenExpirationMillis = jwtTokenProvider.getExpirationRemainingTimeMillis(refreshTokenString);
+            Instant expiresAt = Instant.now().plusMillis(refreshTokenExpirationMillis);
 
-            refreshTokenRepository.deleteByUser(user);
-
-            RefreshToken refreshToken = RefreshToken.builder()
-                    .refreshToken(refreshTokenString)
-                    .user(user)
-                    .expiresAt(Instant.now().plusMillis(refreshTokenExpirationMillis))
-                    .build();
-            refreshTokenRepository.save(refreshToken);
+            // delete와 save 대신 단 한 번의 upsert 쿼리 호출
+            refreshTokenRepository.saveOrUpdate(user.getUserId(), refreshTokenString, expiresAt);
 
             return JwtToken.builder()
                     .grantType("Bearer")
@@ -189,54 +190,6 @@ public class AuthService {
                 .build();
     }
 
-    // 내 정보 수정
-    @Transactional
-    public UserMyPageResponseDto updateMyPageInfo(Long userId, UserMyPageUpdateRequestDto dto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("회원이 없습니다"));
-
-        if (dto.getNickname() != null) {
-            user.updateNickname(dto.getNickname());
-        }
-
-        // 프로필 이미지 변경 로직
-        if (dto.getDeleteProfileImage() != null && dto.getDeleteProfileImage()) {
-            // 클라이언트가 명시적으로 이미지 삭제를 요청한 경우
-            if (user.getProfileImageFile() != null) {
-                imageFileService.deleteImage(user.getProfileImageFile().getImageFileId());
-            }
-            user.updateProfileImageFile(null);
-        } else if (dto.getProfileImageFileId() != null) {
-            // 새 프로필 이미지가 있을 경우
-            ImageFile newProfileImageFile = imageFileRepository.findById(dto.getProfileImageFileId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이미지 파일입니다."));
-            // 이전 프로필 이미지가 있다면 S3 및 DB에서 삭제 (선택 사항 - 여기서는 생략)
-            user.updateProfileImageFile(newProfileImageFile);
-        }   // else: profileImageFileId도 null이고 deleteProfileImage도 false/null이면 변경 없음
-
-
-        if (dto.getFcmToken() != null) {
-            user.updateFcmToken(dto.getFcmToken());
-        }
-
-        if (dto.getSubscriptionStatus() != null) {
-            user.updateSubscriptionStatus(dto.getSubscriptionStatus());
-        }
-
-        // DTO 반환 시 프로필 이미지 URL을 안전하게 가져옴
-        String profileImageUrl = (user.getProfileImageFile() != null) ? user.getProfileImageFile().getImageUrl() : null;
-
-        return UserMyPageResponseDto.builder()
-                .userId(user.getUserId())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .profileImageUrl(profileImageUrl) // 수정된 부분
-                .oauthProvider(user.getOauthProvider())
-                .role(user.getRole())
-                .subscriptionStatus(user.getSubscriptionStatus())
-                .build();
-    }
-
     // 내 정보 삭제 (하드 삭제 예시)
     @Transactional
     public void deleteMyPageInfo(Long userId) {
@@ -255,53 +208,6 @@ public class AuthService {
         userRepository.deleteById(userId);
     }
 
-    /**
-     * 사용자의 프로필 이미지를 업데이트하거나 삭제합니다.
-     *
-     * @param userId             사용자 ID
-     * @param newProfileImageFileId 새로운 프로필 이미지 파일의 ID (null이면 기존 이미지 삭제
-     * @return 업데이트된 사용자 정보 DTO
-     * @throws UserNotFoundException  사용자를 찾을 수 없을 때
-     * @throws IllegalArgumentException 존재하지 않는 이미지 파일 ID를 제공했을 때
-     */
-    @Transactional
-    public UserMyPageResponseDto updateProfileImage(Long userId, Long newProfileImageFileId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-
-        // 새 프로필 이미지 파일 ID가 제공된 경우 (이미지 변경)
-        if (newProfileImageFileId != null) {
-            ImageFile newProfileImage = imageFileRepository.findById(newProfileImageFileId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이미지 파일입니다: " + newProfileImageFileId));
-
-            // 기존 프로필 이미지가 있다면 삭제
-            if (user.getProfileImageFile() != null) {
-                imageFileService.deleteImage(user.getProfileImageFile().getImageFileId());
-            }
-            user.updateProfileImageFile(newProfileImage);
-            log.info("사용자 ID {}의 프로필 이미지가 {}로 업데이트되었습니다. 기존 이미지 삭제됨.", userId, newProfileImageFileId);
-        } else {
-            // 새 프로필 이미지 파일 ID가 null인 경우: 기존 프로필 이미지 삭제
-            if (user.getProfileImageFile() != null) {
-                imageFileService.deleteImage(user.getProfileImageFile().getImageFileId());
-                user.updateProfileImageFile(null); // User 엔티티의 참조도 null로 설정
-                log.info("사용자 ID {}의 프로필 이미지가 삭제되었습니다.", userId);
-            } else {
-                log.info("사용자 ID {}는 기존 프로필 이미지가 없어 삭제 작업을 건너뜁니다.", userId);
-            }
-        }
-
-        // 변경된 사용자 정보를 DTO로 변환하여 반환
-        return UserMyPageResponseDto.builder()
-                .userId(user.getUserId())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .profileImageUrl((user.getProfileImageFile() != null) ? user.getProfileImageFile().getImageUrl() : null)
-                .oauthProvider(user.getOauthProvider())
-                .role(user.getRole())
-                .subscriptionStatus(user.getSubscriptionStatus())
-                .build();
-    }
 
     /**
      * 사용자의 닉네임을 변경합니다.
@@ -334,4 +240,69 @@ public class AuthService {
                 .subscriptionStatus(user.getSubscriptionStatus())
                 .build();
     }
+    @Transactional
+    public UserMyPageResponseDto updateProfileImage(Long userId, MultipartFile imageFile) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new IllegalArgumentException("업로드된 이미지 파일이 없습니다.");
+        }
+
+        // ✅ 1. 새 이미지 업로드
+        ImageFile newProfileImage = imageFileService.uploadImage(imageFile, ImageDomainType.USER, userId);
+
+        // ✅ 2. 기존 이미지 삭제 (기본 이미지가 아닐 경우)
+        if (user.getProfileImageFile() != null &&
+                !DefaultImages.isDefaultImage(user.getProfileImageFile().getS3Key())) {
+            imageFileService.deleteImage(user.getProfileImageFile().getImageFileId());
+        }
+
+        // ✅ 3. 유저 객체에 새로운 이미지 설정
+        user.updateProfileImageFile(newProfileImage);
+
+        // ✅ 4. 응답 DTO 반환
+        return convertToMyPageResponseDto(user);
+    }
+
+    @Transactional
+    public UserMyPageResponseDto deleteProfileImage(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        ImageFile defaultImageFile = imageFileRepository.findByS3Key(DefaultImages.DEFAULT_USER_IMAGE)
+                .orElseThrow(() -> new IllegalStateException("기본 사용자 이미지가 존재하지 않습니다."));
+
+        // 현재 프로필 이미지가 기본 이미지가 아닌 경우에만 삭제 로직 실행
+        if (user.getProfileImageFile() != null &&
+                !user.getProfileImageFile().getS3Key().equals(DefaultImages.DEFAULT_USER_IMAGE)) {
+
+            Long currentImageId = user.getProfileImageFile().getImageFileId();
+            imageFileService.deleteImage(currentImageId);
+            log.info("사용자 ID {}의 기존 프로필 이미지가 삭제되었습니다. 이미지 ID: {}", userId, currentImageId);
+        }
+
+        // 사용자 엔티티의 프로필 이미지를 기본 이미지로 업데이트
+        user.updateProfileImageFile(defaultImageFile);
+
+        // DTO로 변환하여 반환
+        return convertToMyPageResponseDto(user);
+    }
+
+    private UserMyPageResponseDto convertToMyPageResponseDto(User user) {
+        String profileImageUrl = (user.getProfileImageFile() != null)
+                ? user.getProfileImageFile().getImageUrl()
+                : null;
+
+        return UserMyPageResponseDto.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImageUrl(profileImageUrl)
+                .oauthProvider(user.getOauthProvider())
+                .role(user.getRole())
+                .subscriptionStatus(user.getSubscriptionStatus())
+                .build();
+    }
+
 }

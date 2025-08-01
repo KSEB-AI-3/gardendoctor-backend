@@ -25,7 +25,7 @@ public class RefreshToken {
     private String refreshToken;
 
     @ManyToOne(fetch = FetchType.LAZY) // User와 N:1 관계, 지연 로딩
-    @JoinColumn(name = "user_pk", nullable = false) // user_pk 컬럼으로 조인, null 불가능
+    @JoinColumn(name = "user_pk", nullable = false, unique = true) // user_pk 컬럼으로 조인, null 불가능
     private User user;
 
     @Column(nullable = false, updatable = false) // 생성 시에만 설정되도록 updatable=false 추가

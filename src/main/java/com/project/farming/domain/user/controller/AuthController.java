@@ -2,6 +2,9 @@ package com.project.farming.domain.user.controller;
 
 import com.project.farming.domain.user.dto.*;
 import com.project.farming.domain.user.entity.User;
+import com.project.farming.global.exception.UserNotFoundException;
+import com.project.farming.global.image.entity.DefaultImages;
+import com.project.farming.global.image.entity.ImageFile;
 import com.project.farming.global.jwtToken.CustomUserDetails;
 import com.project.farming.global.jwtToken.JwtToken;
 import com.project.farming.domain.user.service.AuthService;
@@ -18,9 +21,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/auth")
@@ -166,28 +171,6 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "내 정보 수정", description = "로그인한 사용자의 닉네임, 프로필 이미지, FCM 토큰, 구독 상태를 수정합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "내 정보 수정 성공",
-                    content = @Content(schema = @Schema(implementation = UserMyPageResponseDto.class))),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효성 검증 실패 또는 존재하지 않는 이미지 파일)",
-                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
-                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
-                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class)))
-    })
-    @SecurityRequirement(name = "jwtAuth")
-    @PatchMapping("/me")
-    public ResponseEntity<UserMyPageResponseDto> updateMyPage(
-            @Parameter(hidden = true)
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Valid @RequestBody UserMyPageUpdateRequestDto requestDto) {
-        Long userId = customUserDetails.getUser().getUserId();
-        UserMyPageResponseDto updated = authService.updateMyPageInfo(userId, requestDto);
-        return ResponseEntity.ok(updated);
-    }
-
     @Operation(summary = "회원 탈퇴", description = "로그인한 사용자의 계정을 삭제합니다. (하드 삭제)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "회원 탈퇴 성공 (No Content)"),
@@ -206,30 +189,6 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "프로필 이미지 변경/삭제", description = "로그인한 사용자의 프로필 이미지를 변경하거나 삭제합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "프로필 이미지 변경/삭제 성공",
-                    content = @Content(schema = @Schema(implementation = UserMyPageResponseDto.class))),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효성 검증 실패 또는 존재하지 않는 이미지 파일 ID)",
-                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
-                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
-                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class)))
-    })
-    @SecurityRequirement(name = "jwtAuth")
-    @PatchMapping("/me/profile-image")
-    public ResponseEntity<UserMyPageResponseDto> updateProfileImage(
-            @Parameter(hidden = true)
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Valid @RequestBody ProfileImageUpdateRequestDto requestDto) { // 이 DTO는 위에 예시로 제시된 DTO를 사용한다고 가정
-        Long userId = customUserDetails.getUser().getUserId();
-        UserMyPageResponseDto updated = authService.updateProfileImage(
-                userId,
-                requestDto.getProfileImageFileId()
-        );
-        return ResponseEntity.ok(updated);
-    }
 
     @Operation(summary = "닉네임 변경", description = "로그인한 사용자의 닉네임을 변경합니다.")
     @ApiResponses(value = {
@@ -250,6 +209,31 @@ public class AuthController {
             @Valid @RequestBody NicknameUpdateRequestDto requestDto) {
         Long userId = customUserDetails.getUser().getUserId();
         UserMyPageResponseDto updated = authService.updateNickname(userId, requestDto.getNewNickname());
+        return ResponseEntity.ok(updated);
+    }
+
+    // 이미지 변경
+    @Operation(summary = "프로필 이미지 업로드 및 변경", description = "사용자가 업로드한 이미지 파일로 프로필 이미지를 변경합니다.")
+    @SecurityRequirement(name = "jwtAuth")
+    @PatchMapping(value = "/me/profile-image/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserMyPageResponseDto> updateProfileImageByUpload(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestPart("image") MultipartFile imageFile
+    ) {
+        Long userId = customUserDetails.getUser().getUserId();
+        UserMyPageResponseDto updated = authService.updateProfileImage(userId, imageFile);
+        return ResponseEntity.ok(updated);
+    }
+
+    // 프로필 이미지 삭제 (기본 이미지로 되돌리기)
+    @Operation(summary = "프로필 이미지 삭제", description = "로그인한 사용자의 프로필 이미지를 기본 이미지로 되돌립니다.")
+    @SecurityRequirement(name = "jwtAuth")
+    @DeleteMapping("/me/profile-image")
+    public ResponseEntity<UserMyPageResponseDto> deleteProfileImage(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Long userId = customUserDetails.getUser().getUserId();
+        UserMyPageResponseDto updated = authService.deleteProfileImage(userId);
         return ResponseEntity.ok(updated);
     }
 
