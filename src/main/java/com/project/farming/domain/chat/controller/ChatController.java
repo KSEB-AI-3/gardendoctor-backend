@@ -64,8 +64,8 @@ public class ChatController {
 
     @Operation(summary = "챗봇 대화방 목록 조회", description = "사용자의 모든 챗봇 대화방(세션) 목록을 조회합니다. Spring의 chatId와 Python의 sessionId를 함께 반환합니다.")
     @GetMapping("/sessions")
-    public ResponseEntity<List<ChatRoomDto>> getChatRoomList( // ✨ 반환 타입 변경
-                                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<List<ChatRoomDto>> getChatRoomList(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         User user = userDetails.getUser();
 

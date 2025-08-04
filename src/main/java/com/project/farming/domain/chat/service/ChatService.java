@@ -2,6 +2,7 @@ package com.project.farming.domain.chat.service;
 
 import com.project.farming.domain.chat.dto.ChatRoomDto;
 import com.project.farming.domain.chat.dto.PythonChatDto;
+import com.project.farming.domain.chat.dto.PythonSessionDto;
 import com.project.farming.domain.chat.entity.Chat;
 import com.project.farming.domain.chat.repository.ChatRepository; // 가상의 Chat 리포지토리
 import com.project.farming.domain.user.entity.User;
@@ -111,6 +112,18 @@ public class ChatService {
     }
 
     /**
+     * Python 챗봇 서버에서 사용자의 모든 세션 목록을 조회합니다.
+     * @return 세션 ID를 포함한 세션 목록
+     */
+    private List<PythonSessionDto> getSessionListFromPython() {
+        return pythonWebClient.get()
+                .uri("/api/chat/sessions")
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<PythonSessionDto>>() {})
+                .block();
+    }
+
+    /**
      * 사용자의 챗봇 대화방 목록을 조회합니다.
      * Spring DB의 chatId와 Python 서버의 sessionId를 결합하여 DTO로 반환합니다.
      * @param user 인증된 사용자
@@ -121,13 +134,20 @@ public class ChatService {
 
         // 1. Spring DB에서 사용자의 채팅방 정보를 가져옵니다.
         // 현재는 OneToOne 관계이므로, 하나의 Chat 객체만 존재합니다.
-        List<Chat> userChats = chatRepository.findByUser_UserId(userId);
+        Map<Long, Long> springChatToPythonSessionMap = chatRepository.findByUser_UserId(userId).stream()
+                .collect(Collectors.toMap(Chat::getPythonSessionId, Chat::getChatId));
 
-        // 2. Chat 엔티티를 ChatRoomDto로 변환하여 반환합니다.
-        return userChats.stream()
-                .map(chat -> ChatRoomDto.builder()
-                        .chatId(chat.getChatId())
-                        .pythonSessionId(chat.getPythonSessionId())
+        // 2. Python FastAPI 서버의 세션 목록을 가져옵니다.
+        List<PythonSessionDto> pythonSessions = getSessionListFromPython();
+
+        // 3. Spring DB에 있는 세션만 필터링하여 ChatRoomDto로 매핑합니다.
+        return pythonSessions.stream()
+                .filter(pythonSession -> springChatToPythonSessionMap.containsKey(pythonSession.getId()))
+                .map(pythonSession -> ChatRoomDto.builder()
+                        .chatId(springChatToPythonSessionMap.get(pythonSession.getId()))
+                        .pythonSessionId(pythonSession.getId())
+                        // 필요하다면 다른 필드를 추가할 수 있습니다.
+                        // .createdAt(pythonSession.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
     }
