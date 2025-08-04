@@ -30,12 +30,6 @@ public class PhotoAnalysisController {
 
     private final PhotoAnalysisService photoAnalysisService;
 
-    @GetMapping("/sidebar/{userId}")
-    @Operation(summary = "사이드바 분석 목록", description = "사이드바용 사진 분석 기록 날짜 + 병명 반환")
-    public ResponseEntity<List<PhotoAnalysisSidebarResponseDto>> getSidebarAnalysisList(@PathVariable Long userId) {
-        return ResponseEntity.ok(photoAnalysisService.getSidebarAnalysisList(userId));
-    }
-
     @SecurityRequirement(name = "jwtAuth")
     @PostMapping(value = "/analyze", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "사진 분석 요청", description = "JWT 인증된 사용자로부터 이미지 파일을 받아 AI 분석 후 DB에 저장합니다.")

@@ -36,21 +36,6 @@ public class PhotoAnalysisService {
 
     private final String AI_SERVER_URL = "http://localhost:8000/diagnose-by-url";
 
-    public List<PhotoAnalysisSidebarResponseDto> getSidebarAnalysisList(Long userId) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        return photoAnalysisRepository.findByUserUserIdOrderByCreatedAtDesc(userId)
-                .stream()
-                .map(pa -> PhotoAnalysisSidebarResponseDto.builder()
-                        .photoAnalysisId(pa.getPhotoAnalysisId())
-                        .createdDate(pa.getCreatedAt().format(formatter))
-                        .detectedDisease(pa.getDetectedDisease())
-                        .analysisSummary(pa.getAnalysisSummary())
-                        .solution(pa.getSolution())
-                        .imageUrl(pa.getPhotoImageFile().getImageUrl())
-                        .build())
-                .collect(Collectors.toList());
-    }
 
     /**
      * 사진 분석 후 DB 저장

@@ -7,7 +7,5 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PhotoAnalysisRepository extends JpaRepository<PhotoAnalysis, Long> {
-    List<PhotoAnalysis> findByUserUserIdOrderByCreatedAtDesc(Long userId);
-
     Optional<PhotoAnalysis> findTopByUserUserIdOrderByCreatedAtDesc(Long userId);
 }
