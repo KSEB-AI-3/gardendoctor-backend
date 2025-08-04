@@ -3,10 +3,8 @@ package com.project.farming.domain.plant.config;
 import com.project.farming.domain.plant.entity.Plant;
 import com.project.farming.domain.plant.repository.PlantRepository;
 import com.project.farming.domain.plant.service.PlantService;
-import com.project.farming.global.exception.ImageFileNotFoundException;
-import com.project.farming.global.image.entity.DefaultImages;
 import com.project.farming.global.image.entity.ImageFile;
-import com.project.farming.global.image.repository.ImageFileRepository;
+import com.project.farming.global.image.service.ImageFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -35,7 +33,7 @@ public class PlantDataInitializer implements CommandLineRunner {
 
     private final PlantRepository plantRepository;
     private final PlantService plantService;
-    private final ImageFileRepository imageFileRepository;
+    private final ImageFileService imageFileService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -43,10 +41,10 @@ public class PlantDataInitializer implements CommandLineRunner {
             log.info("plant_info 테이블에 초기 식물 데이터가 이미 존재합니다.");
             return;
         }
-        initializePlants(getDefaultPlantImage());
+        initializePlants();
     }
 
-    private void initializePlants(ImageFile defaultPlantImage) throws IOException {
+    private void initializePlants() throws IOException {
         InputStream inputStream = getClass().getResourceAsStream("/data/plantList.xlsx");
         if (inputStream == null) {
             throw new IllegalArgumentException("plantList 엑셀 파일을 찾을 수 없습니다.");
@@ -55,6 +53,7 @@ public class PlantDataInitializer implements CommandLineRunner {
         Workbook workbook = WorkbookFactory.create(inputStream);
         Sheet sheet = workbook.getSheetAt(0);
         List<Plant> plantList = new ArrayList<>();
+        long plantId = 1;
 
         for (Row row : sheet) {
             if (row.getRowNum() == 0) continue; // 제목 행
@@ -62,13 +61,15 @@ public class PlantDataInitializer implements CommandLineRunner {
             String plantEnglishName = getCellValue(row.getCell(1));
             String species = getCellValue(row.getCell(2));
             String season = getCellValue(row.getCell(3));
+            ImageFile plantImage = imageFileService
+                    .savePlantImageByUrl(getCellValue(row.getCell(4)), plantId++);
 
             plantList.add(Plant.builder()
                     .plantName(plantName)
                     .plantEnglishName(plantEnglishName)
                     .species(species)
                     .season(season)
-                    .plantImageFile(defaultPlantImage)
+                    .plantImageFile(plantImage)
                     .build());
         }
         plantService.savePlants(plantList);
@@ -76,11 +77,6 @@ public class PlantDataInitializer implements CommandLineRunner {
 
         workbook.close();
         inputStream.close();
-    }
-
-    private ImageFile getDefaultPlantImage() {
-        return imageFileRepository.findByS3Key(DefaultImages.DEFAULT_PLANT_IMAGE)
-                .orElseThrow(() -> new ImageFileNotFoundException("기본 식물 이미지가 존재하지 않습니다."));
     }
 
     private String getCellValue(Cell cell) {

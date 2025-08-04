@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -179,7 +182,61 @@ public class ImageFileService {
     }
 
     /**
+     * PlantDataInitializer에서 사용
+     * - 기본 식물 이미지 반환
+     *
+     * @return 기본 식물 이미지
+     */
+    public ImageFile getDefaultPlantImage() {
+        return imageFileRepository.findByS3Key(DefaultImages.DEFAULT_PLANT_IMAGE)
+                .orElseThrow(() -> new ImageFileNotFoundException("기본 식물 이미지가 존재하지 않습니다."));
+    }
+
+    /**
+     * PlantDataInitializer에서 사용
+     * - 각 식물의 이미지 저장
+     *
+     * @param plantImageUrl 저장할 식물 이미지 URL
+     * @param plantId 식물 ID
+     * @return 저장된 식물 이미지
+     */
+    @Transactional
+    public ImageFile savePlantImageByUrl(String plantImageUrl, Long plantId) {
+        if (plantImageUrl.isBlank()) {
+            return getDefaultPlantImage();
+        }
+        String s3Key = extractS3Key(plantImageUrl);
+        ImageFile imageFile = ImageFile.builder()
+                .originalImageName(s3Key.substring(6))
+                .s3Key(s3Key)
+                .imageUrl(plantImageUrl)
+                .domainType(ImageDomainType.PLANT)
+                .domainId(plantId)
+                .build();
+        return imageFileRepository.save(imageFile);
+    }
+
+    /**
+     * PlantDataInitializer에서 사용
+     * - URL에서 s3Key 추출
+     *
+     * @param imageUrl 추출할 이미지 URL
+     * @return 추출된 s3Key
+     */
+    private String extractS3Key(String imageUrl) {
+        try {
+            URL url = new URL(imageUrl);
+            String path = url.getPath(); // /plant/%EA%B0%80%EC%A7%80.png
+            String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8); // /plant/가지.png
+            return decodedPath.startsWith("/") ? decodedPath.substring(1) : decodedPath; // plant/고추.png
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid S3 URL: " + imageUrl, e);
+        }
+    }
+
+    /**
      * ImageFileDataInitializer에서 사용
+     * - 기본 이미지들 저장
      *
      * @param imageFileList 저장할 기본 이미지 목록
      */
