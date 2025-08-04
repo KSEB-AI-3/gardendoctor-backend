@@ -3,27 +3,36 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>메인 화면</title>
+    <title>홈 화면</title>
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
 </head>
-<body th:replace="~{layout::layout}">
-<div th:fragment="content">
-    <h1>메인 화면</h1>
+<body th:replace="~{layout::layout}" class="d-flex justify-content-center align-items-center vh-100">
+<div class="main-container text-center" th:fragment="content">
     <th:block sec:authorize="isAnonymous()">
-        <div>로그인하지 않은 사용자에게만 보입니다.</div>
+        <img src="https://aws-bucket-farming-family-25078.s3.ap-northeast-2.amazonaws.com/app_icon.png"
+             width="100" height="100" alt="로고" class="mb-3" style="border-radius: 5px;">
+        <h1 class="mb-4 app-title">텃밭 닥터</h1>
     </th:block>
-
-    <th:block sec:authorize="isAuthenticated()">
-        <div>어떤권한이건 상관없이 인증된(로그인성공) 사용자에게만 보입니다.</div>
-    </th:block>
-
-    <h1>session 객체에 등록된 userId : [[${session.userId}]]</h1>
 
     <th:block sec:authorize="hasRole('ADMIN')">
-        <div>ADMIN 사용자에게만 보입니다.</div>
-    </th:block>
-
-    <th:block sec:authorize="hasRole('USER')">
-        <div>USER 사용자에게만 보입니다.</div>
+        <h3 class="mb-4 admin-name">[[${session.userId}]] 님 환영합니다</h3>
+        <br>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <a th:href="@{/admin/users}" class="btn btn-primary w-100 tile-button">👥 User 관리</a>
+            </div>
+            <div class="col-md-6">
+                <a th:href="@{/admin/farms}" class="btn btn-secondary w-100 tile-button">🌱 텃밭 정보 관리</a>
+            </div>
+            <div class="col-md-6">
+                <a th:href="@{/admin/plants}" class="btn btn-success w-100 tile-button">🌿 식물 정보 관리</a>
+            </div>
+            <div class="col-md-6">
+                <a th:href="@{/admin/notices}" class="btn btn-warning w-100 tile-button">📢 공지사항 작성</a>
+            </div>
+        </div>
     </th:block>
 </div>
 </body>

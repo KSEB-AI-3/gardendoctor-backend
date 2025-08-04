@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers("/api/notify/test").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**",  "/swagger-ui.html").permitAll()
-                        .requestMatchers("/", "/home", "/login").permitAll() // 관리자 페이지 관련
+                        .requestMatchers("/", "/home", "/login", "/denied", "/expired", "/css/**").permitAll() // 관리자 페이지 관련
                         // --- 2. 인증 필요 (authenticated()) ---
                         .requestMatchers("/auth/logout").authenticated()
                         .requestMatchers("/auth/user/me").authenticated()
@@ -79,6 +79,12 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
+                            String accept = request.getHeader("Accept");
+                            // 웹 브라우저 요청인 경우
+                            if (accept != null && accept.contains("text/html")) {
+                                response.sendRedirect("/denied");
+                                return;
+                            }
                             response.setContentType("application/json;charset=UTF-8");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"인증이 필요합니다.\"}");
@@ -92,7 +98,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
