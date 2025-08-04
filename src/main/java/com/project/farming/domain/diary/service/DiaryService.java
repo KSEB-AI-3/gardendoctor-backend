@@ -1,5 +1,6 @@
 package com.project.farming.domain.diary.service;
 
+import com.project.farming.domain.diary.dto.DiaryResponse;
 import com.project.farming.domain.diary.entity.Diary;
 import com.project.farming.domain.diary.entity.DiaryUserPlant;
 import com.project.farming.domain.diary.repository.DiaryRepository;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -220,37 +222,46 @@ public class DiaryService {
      *
      * @param diaryId 조회할 일지 ID
      * @param user 현재 로그인한 사용자
-     * @return 조회된 Diary 엔티티
+     * @return 조회된 DiaryResponse DTO
      */
-    public Diary getDiaryById(Long diaryId, User user) {
+    public DiaryResponse getDiaryById(Long diaryId, User user) {
         Diary diary = diaryRepository.findById(diaryId)
                 .orElseThrow(() -> new NoSuchElementException("해당 ID의 일지를 찾을 수 없습니다: " + diaryId));
+
         if (!diary.getUser().getUserId().equals(user.getUserId())) {
             throw new IllegalArgumentException("해당 일지에 대한 조회 권한이 없습니다.");
         }
-        return diary;
-    }
 
+        // 트랜잭션이 살아있는 서비스 계층에서 DTO로 변환하여 반환
+        return new DiaryResponse(diary);
+    }
     /**
      * 특정 사용자의 모든 일지 조회 (캘린더 기본 뷰 - 최신순)
      *
      * @param user 현재 로그인한 사용자
      * @return 해당 사용자의 모든 Diary 목록
      */
-    public List<Diary> getAllDiariesByUser(User user) {
-        return diaryRepository.findByUserOrderByCreatedAtDesc(user);
-    }
+    public List<DiaryResponse> getAllDiariesByUser(User user) {
+        List<Diary> diaries = diaryRepository.findByUserOrderByCreatedAtDesc(user);
 
+        // 엔티티 목록을 스트림으로 변환하고, 각 엔티티를 DTO로 매핑한 후 리스트로 반환
+        return diaries.stream()
+                .map(DiaryResponse::new)
+                .collect(Collectors.toList());
+    }
     /**
      * 특정 사용자의 특정 기간 동안의 일지 조회 (캘린더 날짜별 정렬)
      *
      * @param user 현재 로그인한 사용자
      * @param startDate 조회 시작 날짜/시간
      * @param endDate 조회 종료 날짜/시간
-     * @return 해당 기간 동안의 Diary 목록
+     * @return 해당 기간 동안의 DiaryResponse 목록
      */
-    public List<Diary> getDiariesByUserAndDateRange(User user, LocalDateTime startDate, LocalDateTime endDate) {
-        return diaryRepository.findByUserAndCreatedAtBetweenOrderByCreatedAtAsc(user, startDate, endDate);
+    public List<DiaryResponse> getDiariesByUserAndDateRange(User user, LocalDateTime startDate, LocalDateTime endDate) {
+        List<Diary> diaries = diaryRepository.findByUserAndCreatedAtBetweenOrderByCreatedAtAsc(user, startDate, endDate);
+        return diaries.stream()
+                .map(DiaryResponse::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -258,14 +269,17 @@ public class DiaryService {
      *
      * @param user 현재 로그인한 사용자
      * @param userPlantId 검색할 UserPlant ID
-     * @return 해당 UserPlant에 연결된 Diary 목록
+     * @return 해당 UserPlant에 연결된 DiaryResponse 목록
      */
-    public List<Diary> getDiariesByUserAndUserPlant(User user, Long userPlantId) {
+    public List<DiaryResponse> getDiariesByUserAndUserPlant(User user, Long userPlantId) {
         // UserPlant가 현재 사용자의 것인지 확인하며 조회
         UserPlant userPlant = userPlantRepository.findByUserAndUserPlantId(user, userPlantId)
                 .orElseThrow(() -> new NoSuchElementException("사용자에 대한 해당 식물을 찾을 수 없습니다: " + userPlantId));
 
-        return diaryRepository.findByUserAndUserPlant(user, userPlant);
+        List<Diary> diaries = diaryRepository.findByUserAndUserPlant(user, userPlant);
+        return diaries.stream()
+                .map(DiaryResponse::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -273,9 +287,9 @@ public class DiaryService {
      *
      * @param user 현재 로그인한 사용자
      * @param userPlantIds 검색할 UserPlant ID 목록
-     * @return 해당 UserPlant 중 하나라도 연결된 Diary 목록
+     * @return 해당 UserPlant 중 하나라도 연결된 DiaryResponse 목록
      */
-    public List<Diary> getDiariesByUserAndUserPlants(User user, List<Long> userPlantIds) {
+    public List<DiaryResponse> getDiariesByUserAndUserPlants(User user, List<Long> userPlantIds) {
         List<UserPlant> userPlants = userPlantRepository.findAllById(userPlantIds);
 
         // 요청된 모든 UserPlant ID가 실제로 존재하는지 검증
@@ -289,6 +303,9 @@ public class DiaryService {
             }
         }
 
-        return diaryRepository.findByUserAndUserPlantsIn(user, userPlants);
+        List<Diary> diaries = diaryRepository.findByUserAndUserPlantsIn(user, userPlants);
+        return diaries.stream()
+                .map(DiaryResponse::new)
+                .collect(Collectors.toList());
     }
 }

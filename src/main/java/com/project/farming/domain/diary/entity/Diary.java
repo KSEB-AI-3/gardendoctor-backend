@@ -58,6 +58,7 @@ public class Diary {
     private boolean fertilized;
 
     @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<DiaryUserPlant> diaryUserPlants = new ArrayList<>();
 
     @PrePersist

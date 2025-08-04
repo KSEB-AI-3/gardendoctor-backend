@@ -83,10 +83,6 @@ public class DiaryController {
 
     /**
      * 특정 일지 조회
-     * GET /api/diaries/{diaryId}
-     * @param customUserDetails 현재 로그인한 사용자
-     * @param diaryId 조회할 일지 ID
-     * @return 일지 응답 DTO
      */
     @Operation(summary = "특정 일지 조회", description = "특정 ID에 해당하는 일지의 상세 정보를 조회합니다.")
     @GetMapping("/{diaryId}")
@@ -96,8 +92,10 @@ public class DiaryController {
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Diary diary = diaryService.getDiaryById(diaryId, customUserDetails.getUser());
-        return ResponseEntity.ok(new DiaryResponse(diary));
+
+        // 서비스에서 DTO를 직접 받아서 반환
+        DiaryResponse response = diaryService.getDiaryById(diaryId, customUserDetails.getUser());
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -113,10 +111,9 @@ public class DiaryController {
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<Diary> diaries = diaryService.getAllDiariesByUser(customUserDetails.getUser());
-        List<DiaryResponse> responses = diaries.stream()
-                .map(DiaryResponse::new)
-                .collect(Collectors.toList());
+
+        // 서비스에서 DTO 목록을 직접 받아서 반환
+        List<DiaryResponse> responses = diaryService.getAllDiariesByUser(customUserDetails.getUser());
         return ResponseEntity.ok(responses);
     }
 
@@ -137,10 +134,8 @@ public class DiaryController {
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<Diary> diaries = diaryService.getDiariesByUserAndDateRange(customUserDetails.getUser(), startDate, endDate);
-        List<DiaryResponse> responses = diaries.stream()
-                .map(DiaryResponse::new)
-                .collect(Collectors.toList());
+        // 서비스에서 DTO 목록을 직접 받아서 반환
+        List<DiaryResponse> responses = diaryService.getDiariesByUserAndDateRange(customUserDetails.getUser(), startDate, endDate);
         return ResponseEntity.ok(responses);
     }
 
@@ -159,10 +154,8 @@ public class DiaryController {
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<Diary> diaries = diaryService.getDiariesByUserAndUserPlant(customUserDetails.getUser(), userPlantId);
-        List<DiaryResponse> responses = diaries.stream()
-                .map(DiaryResponse::new)
-                .collect(Collectors.toList());
+        // 서비스에서 DTO 목록을 직접 받아서 반환
+        List<DiaryResponse> responses = diaryService.getDiariesByUserAndUserPlant(customUserDetails.getUser(), userPlantId);
         return ResponseEntity.ok(responses);
     }
 
@@ -171,7 +164,7 @@ public class DiaryController {
      * GET /api/diaries/my-diaries/by-user-plants?ids=1,2,3
      * @param customUserDetails 현재 로그인한 사용자
      * @param userPlantIds 검색할 UserPlant ID 목록 (콤마로 구분)
-     * @return 해당 UserPlant 중 하나라도 연결된 일지 목록 응사 DTO
+     * @return 해당 UserPlant 중 하나라도 연결된 일지 목록 응답 DTO
      */
     @Operation(summary = "여러 사용자 식물(UserPlant) 중 하나라도 연결된 일지 조회", description = "현재 사용자가 등록한 여러 UserPlant 중 하나라도 연결된 일지 목록을 조회합니다. 다중 태그 검색과 유사합니다.")
     @GetMapping("/my-diaries/by-user-plants")
@@ -181,10 +174,8 @@ public class DiaryController {
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<Diary> diaries = diaryService.getDiariesByUserAndUserPlants(customUserDetails.getUser(), userPlantIds);
-        List<DiaryResponse> responses = diaries.stream()
-                .map(DiaryResponse::new)
-                .collect(Collectors.toList());
+        // 서비스에서 DTO 목록을 직접 받아서 반환
+        List<DiaryResponse> responses = diaryService.getDiariesByUserAndUserPlants(customUserDetails.getUser(), userPlantIds);
         return ResponseEntity.ok(responses);
     }
 
