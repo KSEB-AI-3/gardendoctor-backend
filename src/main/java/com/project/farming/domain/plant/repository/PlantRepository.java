@@ -19,6 +19,15 @@ public interface PlantRepository extends JpaRepository<Plant, Long> {
         """, nativeQuery = true)
     List<Plant> findByPlantNameContainingOrderByPlantNameAsc(@Param("keyword") String keyword);
 
+    List<Plant> findAllByOrderByPlantIdAsc();
+
+    @Query(value = """
+        SELECT * FROM plant_info
+        WHERE plant_name LIKE :keyword OR plant_english_name LIKE :keyword
+        ORDER BY plant_id ASC
+        """, nativeQuery = true)
+    List<Plant> findByPlantNameContainingOrderByPlantIdAsc(@Param("keyword") String keyword);
+
     Optional<Plant> findByPlantName(String plantName);
 
     @Query(value ="SELECT * FROM plant_info WHERE plant_name = :plantName LIMIT 1" , nativeQuery = true)

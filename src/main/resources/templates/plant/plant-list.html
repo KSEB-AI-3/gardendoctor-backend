@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>식물 목록 조회</title>
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+</head>
+<body th:replace="~{layout::layout}">
+<div th:fragment="content">
+    <h1>식물 목록</h1>
+    <!-- 식물 이름(한글/영어)으로 검색   -->
+    <form method="get" th:action="@{/admin/plants/search}">
+        <table>
+            <tr>
+                <td><input type="text" name="keyword"></td>
+                <td><input type="submit" value="search"></td>
+            </tr>
+        </table>
+    </form>
+
+    <div>
+        <a th:href="@{/admin/plants/create}">식물 정보 등록</a>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>plantId</th>
+            <th>plantImage</th>
+            <th>plantName</th>
+            <th>plantEnglishName</th>
+            <th>species</th>
+            <th>season</th>
+        </tr>
+        </thead>
+        <tbody>
+        <th:block th:each="plant : ${plantList}">
+            <tr>
+                <td>[[${plant.plantId}]]</td>
+                <td>
+                    <img th:src="${plant.plantImageUrl}" width="100" height="100" alt="">
+                </td>
+                <td><a th:href="@{/admin/plants/{plantId}(plantId=${plant.plantId})}">[[${plant.plantName}]]</a></td>
+                <td><a th:href="@{/admin/plants/{plantId}(plantId=${plant.plantId})}">[[${plant.plantEnglishName}]]</a></td>
+                <td>[[${plant.species}]]</td>
+                <td>[[${plant.season}]]</td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

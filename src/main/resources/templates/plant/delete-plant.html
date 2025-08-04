@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>식물 정보 삭제</title>
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+</head>
+<body th:replace="~{layout::layout}">
+<div th:fragment="content">
+    <div>
+        <h1>식물 정보 삭제</h1>
+        <h3>[[${param.plantId}]]번 식물을 정말 삭제하시겠습니까?</h3>
+        <p th:if="${param.error}" style="color:red;">
+            식물 정보 삭제에 실패했습니다. 다시 한 번 시도해 주세요.
+        </p>
+        <a th:href="@{/admin/plants/{plantId}(plantId=${param.plantId})}">취소</a>
+        <a th:href="@{/admin/plants/delete/{plantId}(plantId=${param.plantId})}">식물 삭제</a>
+    </div>
+</div>
+</body>
+</html>
