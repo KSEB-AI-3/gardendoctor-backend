@@ -4,6 +4,7 @@ package com.project.farming.domain.notification.service;
 import com.project.farming.domain.fcm.FcmService;
 import com.project.farming.domain.notification.dto.NotificationRequestDto;
 import com.project.farming.domain.notification.dto.NotificationResponseDto;
+import com.project.farming.domain.notification.entity.Notice;
 import com.project.farming.domain.notification.entity.Notification;
 import com.project.farming.domain.notification.repository.NotificationRepository;
 import com.project.farming.domain.user.entity.User;
@@ -174,6 +175,28 @@ public class NotificationService {
     }
 
     /**
+     * 공지 알림을 각 사용자 별로 저장
+     *
+     * @param notice 저장할 공지 내용
+     */
+    @Transactional
+    public void saveNotice(Notice notice) {
+        List<User> userList = userRepository.findAll();
+        if (userList.isEmpty()) {
+            throw new UserNotFoundException("사용자가 존재하지 않습니다.");
+        }
+        List<Notification> notifications = userList.stream()
+                .map(user -> Notification.builder()
+                        .user(user)
+                        .title(notice.getTitle())
+                        .message(notice.getContent())
+                        .isRead(false)
+                        .build())
+                .collect(Collectors.toList());
+        notificationRepository.saveAll(notifications);
+    }
+
+    /**
      * [관리자 전용] 특정 사용자 ID를 가진 모든 알림을 삭제 (권한 체크 없음)
      * 이 메서드는 관리자 기능 또는 내부 시스템에서만 사용되어야 합니다.
      */
@@ -197,24 +220,5 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotificationNotFoundException("Notification not found with ID: " + notificationId));
         notification.markAsRead();
-    }
-
-    /**
-     * 매일 오전 10시 모든 사용자에게
-     * "오늘의 할 일" 알림 전송
-     */
-    // TODO: 관리자 계정으로 전체 공지 발송 개발 예정
-    @Transactional
-    public void sendNotifications() {
-        List<String> targetTokens = userRepository.findAll().stream()
-                .map(User::getFcmToken)
-                .collect(Collectors.toList());
-        if (targetTokens.isEmpty()) {
-            throw new UserNotFoundException("사용자가 존재하지 않습니다.");
-        }
-        fcmService.sendMessagesTo(
-                targetTokens,
-                "\uD83C\uDF31 오늘의 식물 관리 알림",
-                "\uD83D\uDCA7 오늘 물 주기와 ✂\uFE0F 가지치기, \uD83D\uDC8A 영양제 주기를 잊지 말고 챙겨주세요.");
     }
 }

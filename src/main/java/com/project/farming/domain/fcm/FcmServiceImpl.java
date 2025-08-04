@@ -51,18 +51,6 @@ public class FcmServiceImpl implements FcmService {
         }
     }
 
-    // 수정 필요
-    private void checkFailure(BatchResponse response, List<String> targetTokens) {
-        List<SendResponse> responses = response.getResponses();
-        List<String> failedTokens = new ArrayList<>();
-        for (int i = 0; i < responses.size(); i++) {
-            if (!responses.get(i).isSuccessful()) {
-                failedTokens.add(targetTokens.get(i));
-            }
-        }
-        log.info("Failed to send messages: {}", failedTokens);
-    }
-
     @Override
     public void sendMessagesTo(List<String> targetTokens, String title, String body) {
         // 최대 500개까지 동시 전송 가능(그 이상은 수정 필요 > 일반 메시지의 Topic)
@@ -87,6 +75,18 @@ public class FcmServiceImpl implements FcmService {
         if (response.getFailureCount() > 0) {
             checkFailure(response, targetTokens);
         }
+    }
+
+    private void checkFailure(BatchResponse response, List<String> targetTokens) {
+        List<SendResponse> responses = response.getResponses();
+        List<String> failedTokens = new ArrayList<>();
+        for (int i = 0; i < responses.size(); i++) {
+            if (!responses.get(i).isSuccessful()) {
+                failedTokens.add(targetTokens.get(i));
+            }
+        }
+        log.warn("Failed to send messages: {}", failedTokens);
+        // TODO: 실패 토큰 DB 저장 또는 재전송 로직 추가
     }
 
     /**

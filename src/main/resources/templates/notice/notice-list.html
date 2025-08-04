@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>공지 목록 조회</title>
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+    <style>
+        .ellipsis {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          width: 300px;
+        }
+    </style>
+</head>
+<body th:replace="~{layout::layout}">
+<div th:fragment="content">
+    <h1>공지 목록</h1>
+    <!-- 공지 제목 또는 내용으로 검색   -->
+    <form method="get" th:action="@{/admin/notices/search}">
+        <table>
+            <tr>
+                <td><select name="searchType">
+                    <option value="title">title</option>
+                    <option value="content">content</option>
+                </select></td>
+                <td><input type="text" name="keyword"></td>
+                <td><input type="submit" value="search"></td>
+            </tr>
+        </table>
+    </form>
+
+    <div>
+        <a th:href="@{/admin/notices/create}">공지 등록</a>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>noticeId</th>
+            <th>title</th>
+            <th>content</th>
+            <th>isSent</th>
+            <th>sentAt</th>
+            <th>createdAt</th>
+            <th>updatedAt</th>
+        </tr>
+        </thead>
+        <tbody>
+        <th:block th:each="notice : ${noticeList}">
+            <tr>
+                <td>[[${notice.noticeId}]]</td>
+                <td><a th:href="@{/admin/notices/{noticeId}(noticeId=${notice.noticeId})}">[[${notice.title}]]</a></td>
+                <td class="ellipsis"><a th:href="@{/admin/notices/{noticeId}(noticeId=${notice.noticeId})}">[[${notice.content}]]</a></td>
+                <td>[[${notice.isSent}]]</td>
+                <td>[[${notice.sentAt}]]</td>
+                <td>[[${notice.createdAt}]]</td>
+                <td>[[${notice.updatedAt}]]</td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
