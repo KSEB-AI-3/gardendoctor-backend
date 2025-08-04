@@ -1,4 +1,3 @@
-// src/main/java/com/project/farming/domain/diary/dto/DiaryRequest.java (수정된 예시)
 package com.project.farming.domain.diary.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -8,12 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter; // Setter 추가하여 @RequestBody에서 값 주입 가능하게 함
+import lombok.Setter;
 
+import java.time.LocalDate; // LocalDate 임포트 추가
 import java.util.List;
 
 @Getter
-@Setter // @RequestBody로 받을 때 필요
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -27,9 +27,13 @@ public class DiaryRequest {
     @Schema(description = "일지 내용", example = "드디어 토마토에 작은 열매가 보이기 시작했어요. 너무 신기하네요.")
     private String content;
 
+    @NotNull(message = "일지 날짜는 필수 입력 사항입니다.") // ✨ 추가된 필드에 대한 검증
+    @Schema(description = "일지에 기록될 날짜 (YYYY-MM-DD)", example = "2024-08-01") // ✨ 추가된 필드에 대한 스키마
+    private LocalDate diaryDate;
+
     @NotNull(message = "물주기 여부는 필수 입력 사항입니다.")
     @Schema(description = "물주기 여부", example = "true")
-    private Boolean watered; // boolean 대신 Boolean을 사용하여 null 허용 여부를 명확히 할 수 있음
+    private Boolean watered;
 
     @NotNull(message = "가지치기 여부는 필수 입력 사항입니다.")
     @Schema(description = "가지치기 여부", example = "false")
@@ -43,5 +47,5 @@ public class DiaryRequest {
     private List<Long> selectedUserPlantIds;
 
     @Schema(description = "기존 이미지 삭제 여부 (일지 수정 시 사용)", example = "false")
-    private boolean deleteExistingImage; // 일지 수정 시 기존 이미지 삭제 여부
+    private boolean deleteExistingImage;
 }

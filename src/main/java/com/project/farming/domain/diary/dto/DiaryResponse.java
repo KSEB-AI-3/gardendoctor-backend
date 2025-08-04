@@ -1,18 +1,18 @@
-// src/main/java/com/project/farming/domain/diary/dto/DiaryResponse.java (수정된 예시)
 package com.project.farming.domain.diary.dto;
 
 import com.project.farming.domain.diary.entity.Diary;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter; // Lombok Setter 추가 (선택 사항)
+import lombok.Setter;
 
+import java.time.LocalDate; // LocalDate 임포트 추가
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-@Setter // 필요에 따라 추가
+@Setter
 @NoArgsConstructor
 @Schema(description = "일지 응답 DTO")
 public class DiaryResponse {
@@ -28,8 +28,11 @@ public class DiaryResponse {
     @Schema(description = "일지 내용", example = "드디어 토마토에 작은 열매가 보이기 시작했어요. 너무 신기하네요.")
     private String content;
 
+    @Schema(description = "일지 기록 날짜", example = "2024-08-01") // ✨ 추가된 필드에 대한 스키마
+    private LocalDate diaryDate;
+
     @Schema(description = "이미지 URL", example = "https://your-s3-bucket/diary/image123.jpg")
-    private String imageUrl; // ImageFile의 imageUrl을 직접 노출
+    private String imageUrl;
 
     @Schema(description = "물주기 여부", example = "true")
     private boolean watered;
@@ -54,7 +57,7 @@ public class DiaryResponse {
         this.userId = diary.getUser().getUserId();
         this.title = diary.getTitle();
         this.content = diary.getContent();
-        // ImageFile 객체에서 imageUrl을 가져오도록 변경
+        this.diaryDate = diary.getDiaryDate(); // ✨ diaryDate 필드 매핑
         this.imageUrl = (diary.getDiaryImageFile() != null) ? diary.getDiaryImageFile().getImageUrl() : null;
         this.watered = diary.isWatered();
         this.pruned = diary.isPruned();

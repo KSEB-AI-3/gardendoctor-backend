@@ -4,7 +4,11 @@ import com.project.farming.domain.chat.entity.ChatHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ChatHistoryRepository extends JpaRepository<ChatHistory, Long> {
     List<ChatHistory> findByUser_UserId(Long userId);
+
+    Optional<ChatHistory> findById(Long id);
+
 }

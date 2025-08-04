@@ -1,6 +1,9 @@
 package com.project.farming.domain.chat.controller;
 
+import com.project.farming.domain.chat.dto.ChatRequestDto;
+import com.project.farming.domain.chat.entity.ChatHistory;
 import com.project.farming.domain.chat.service.ChatService;
+import com.project.farming.domain.user.dto.UserMyPageResponseDto;
 import com.project.farming.domain.user.entity.User;
 import com.project.farming.global.jwtToken.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -33,5 +37,22 @@ public class ChatController {
 
         String answer = chatService.askPythonAgent(user, question);
         return ResponseEntity.ok(Map.of("answer", answer));
+    }
+
+    @Operation(summary = "챗봇 세션 메시지 조회", description = "FastAPI에서 특정 세션의 모든 메시지를 조회합니다.")
+    @GetMapping("/history/messages")
+    public ResponseEntity<Map<String, Object>> getChatSessionMessages(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestParam Long chatHistoryId) {
+
+        Long userId = user.getUser().getUserId();
+
+        // 1. 내 소유인지 확인 (예외 발생 시 403 방지용)
+        chatService.validateChatHistoryOwnership(userId, chatHistoryId);
+
+        // 2. FastAPI에 세션 조회 요청
+        Map<String, Object> sessionData = chatService.getSessionMessagesFromPython(chatHistoryId);
+
+        return ResponseEntity.ok(sessionData);
     }
 }

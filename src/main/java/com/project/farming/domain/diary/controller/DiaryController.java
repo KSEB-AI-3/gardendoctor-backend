@@ -1,4 +1,3 @@
-// src/main/java/com/project/farming/domain/diary/controller/DiaryController.java
 package com.project.farming.domain.diary.controller;
 
 import com.project.farming.domain.diary.dto.DiaryRequest;
@@ -9,12 +8,13 @@ import com.project.farming.global.jwtToken.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema; // 올바른 Schema 임포트
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +22,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Tag(name = "Diary API", description = "일지(Diary) 관련 API")
 @RestController
@@ -37,11 +36,6 @@ public class DiaryController {
 
     /**
      * 새로운 일지 생성
-     * POST /api/diaries
-     * @param customUserDetails 현재 로그인한 사용자 (인증 정보에서 추출)
-     * @param diaryRequest 일지 생성 요청 DTO (JSON 데이터)
-     * @param imageFile 업로드할 이미지 파일 (선택 사항)
-     * @return 생성된 일지 응답 DTO
      */
     @Operation(
             summary = "새 일지 생성",
@@ -72,6 +66,7 @@ public class DiaryController {
                 customUserDetails.getUser(),
                 diaryRequest.getTitle(),
                 diaryRequest.getContent(),
+                diaryRequest.getDiaryDate(), // ✨ diaryDate 전달
                 imageFile,
                 diaryRequest.getWatered(),
                 diaryRequest.getPruned(),
@@ -93,16 +88,12 @@ public class DiaryController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // 서비스에서 DTO를 직접 받아서 반환
         DiaryResponse response = diaryService.getDiaryById(diaryId, customUserDetails.getUser());
         return ResponseEntity.ok(response);
     }
 
     /**
      * 특정 사용자의 모든 일지 조회 (캘린더 기본 뷰 - 최신순)
-     * GET /api/diaries/my-diaries
-     * @param customUserDetails 현재 로그인한 사용자
-     * @return 일지 목록 응답 DTO
      */
     @Operation(summary = "특정 사용자의 모든 일지 조회 (최신순)", description = "현재 로그인된 사용자가 작성한 모든 일지 목록을 최신순으로 조회합니다.")
     @GetMapping("/my-diaries")
@@ -112,39 +103,28 @@ public class DiaryController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // 서비스에서 DTO 목록을 직접 받아서 반환
         List<DiaryResponse> responses = diaryService.getAllDiariesByUser(customUserDetails.getUser());
         return ResponseEntity.ok(responses);
     }
 
     /**
      * 특정 사용자의 특정 기간 동안의 일지 조회 (캘린더 날짜별 정렬)
-     * GET /api/diaries/my-diaries/by-date
-     * @param customUserDetails 현재 로그인한 사용자
-     * @param startDate 시작 날짜/시간 (ISO 8601 형식)
-     * @param endDate 종료 날짜/시간 (ISO 8601 형식)
-     * @return 일지 목록 응답 DTO
      */
     @Operation(summary = "특정 기간 동안의 일지 조회", description = "현재 로그인된 사용자가 작성한 일지 중 특정 기간 내의 일지 목록을 조회합니다. 날짜별 캘린더 조회에 사용됩니다.")
     @GetMapping("/my-diaries/by-date")
     public ResponseEntity<List<DiaryResponse>> getMyDiariesByDateRange(
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Parameter(description = "검색 시작 날짜/시간 (ISO 8601 형식, 예: 2024-07-01T00:00:00)") @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @Parameter(description = "검색 종료 날짜/시간 (ISO 8601 형식, 예: 2024-07-31T23:59:59)") @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+            @Parameter(description = "검색 시작 날짜 (ISO 8601 형식, 예: 2024-07-01)") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @Parameter(description = "검색 종료 날짜 (ISO 8601 형식, 예: 2024-07-31)") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) { // ✨ LocalDate로 변경
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // 서비스에서 DTO 목록을 직접 받아서 반환
         List<DiaryResponse> responses = diaryService.getDiariesByUserAndDateRange(customUserDetails.getUser(), startDate, endDate);
         return ResponseEntity.ok(responses);
     }
 
     /**
      * 특정 사용자 식물(UserPlant)에 연결된 일지 조회 (닉네임 기반 태그 검색)
-     * GET /api/diaries/my-diaries/by-user-plant/{userPlantId}
-     * @param customUserDetails 현재 로그인한 사용자
-     * @param userPlantId 검색할 UserPlant ID
-     * @return 해당 UserPlant에 연결된 일지 목록 응답 DTO
      */
     @Operation(summary = "특정 사용자 식물(UserPlant)에 연결된 일지 조회", description = "특정 UserPlant에 연결된 현재 사용자의 모든 일지를 조회합니다. 클라이언트 드롭다운에서 특정 닉네임의 작물을 선택하여 일지를 필터링할 때 사용됩니다.")
     @GetMapping("/my-diaries/by-user-plant/{userPlantId}")
@@ -154,17 +134,12 @@ public class DiaryController {
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // 서비스에서 DTO 목록을 직접 받아서 반환
         List<DiaryResponse> responses = diaryService.getDiariesByUserAndUserPlant(customUserDetails.getUser(), userPlantId);
         return ResponseEntity.ok(responses);
     }
 
     /**
      * 여러 사용자 식물(UserPlant) 중 하나라도 연결된 일지 조회 (다중 태그 검색)
-     * GET /api/diaries/my-diaries/by-user-plants?ids=1,2,3
-     * @param customUserDetails 현재 로그인한 사용자
-     * @param userPlantIds 검색할 UserPlant ID 목록 (콤마로 구분)
-     * @return 해당 UserPlant 중 하나라도 연결된 일지 목록 응답 DTO
      */
     @Operation(summary = "여러 사용자 식물(UserPlant) 중 하나라도 연결된 일지 조회", description = "현재 사용자가 등록한 여러 UserPlant 중 하나라도 연결된 일지 목록을 조회합니다. 다중 태그 검색과 유사합니다.")
     @GetMapping("/my-diaries/by-user-plants")
@@ -174,20 +149,12 @@ public class DiaryController {
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // 서비스에서 DTO 목록을 직접 받아서 반환
         List<DiaryResponse> responses = diaryService.getDiariesByUserAndUserPlants(customUserDetails.getUser(), userPlantIds);
         return ResponseEntity.ok(responses);
     }
 
-
     /**
      * 일지 수정
-     * PUT /api/diaries/{diaryId}
-     * @param customUserDetails 현재 로그인한 사용자
-     * @param diaryId 수정할 일지 ID
-     * @param request 일지 수정 요청 DTO (JSON 데이터)
-     * @param newImageFile 새로운 이미지 파일 (선택 사항)
-     * @return 수정된 일지 응답 DTO
      */
     @Operation(
             summary = "일지 수정",
@@ -222,6 +189,7 @@ public class DiaryController {
                 customUserDetails.getUser(),
                 request.getTitle(),
                 request.getContent(),
+                request.getDiaryDate(), // ✨ diaryDate 전달
                 newImageFile,
                 request.isDeleteExistingImage(),
                 request.getWatered(),
@@ -234,10 +202,6 @@ public class DiaryController {
 
     /**
      * 일지 삭제
-     * DELETE /api/diaries/{diaryId}
-     * @param customUserDetails 현재 로그인한 사용자
-     * @param diaryId 삭제할 일지 ID
-     * @return 응답 없음 (No Content)
      */
     @Operation(summary = "일지 삭제", description = "특정 ID에 해당하는 일지를 삭제합니다. 연결된 이미지 파일도 함께 삭제됩니다.")
     @DeleteMapping("/{diaryId}")

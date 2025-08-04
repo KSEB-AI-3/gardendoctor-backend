@@ -27,6 +27,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -98,7 +100,6 @@ public class AuthController {
 
         String header = request.getHeader("Authorization");
 
-        // 1. Authorization 헤더 및 Bearer 토큰 형식 검증
         if (header == null || !header.startsWith("Bearer ")) {
             log.warn("로그아웃 실패: Authorization 헤더가 없거나 'Bearer ' 형식으로 시작하지 않습니다.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
@@ -110,12 +111,10 @@ public class AuthController {
         }
 
         String accessToken = header.substring(7);
-        Long userId = customUserDetails.getUser().getUserId(); // @AuthenticationPrincipal이 이미 인증된 사용자 정보를 제공
+        Long userId = customUserDetails.getUser().getUserId();
 
-        // 2. AuthService 호출
         authService.logout(accessToken, userId);
 
-        // 3. 성공 응답 (이미 토큰이 없었어도 사용자에게는 성공으로 간주)
         return ResponseEntity.ok(AuthResponseDto.builder().message("로그아웃 성공").build());
     }
 
@@ -135,7 +134,7 @@ public class AuthController {
     @Operation(summary = "현재 사용자 정보 조회", description = "인증된 사용자의 상세 정보를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공",
-                    content = @Content(schema = @Schema(implementation = User.class))),
+                    content = @Content(schema = @Schema(implementation = UserMeResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
                     content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
@@ -143,12 +142,13 @@ public class AuthController {
     })
     @SecurityRequirement(name = "jwtAuth")
     @GetMapping("/user/me")
-    public ResponseEntity<User> getCurrentUser(
-            @Parameter(hidden = true) // Swagger 문서에서 이 파라미터를 숨깁니다.
+    public ResponseEntity<UserMeResponseDto> getCurrentUser(
+            @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         Long userId = customUserDetails.getUser().getUserId();
+        // 서비스에서 User 객체를 Optional로 받아서 DTO로 변환
         return authService.getUserById(userId)
-                .map(ResponseEntity::ok)
+                .map(user -> ResponseEntity.ok(UserMeResponseDto.from(user)))
                 .orElse(ResponseEntity.notFound().build());
     }
 

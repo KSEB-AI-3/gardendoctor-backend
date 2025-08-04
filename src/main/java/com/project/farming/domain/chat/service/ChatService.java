@@ -62,4 +62,18 @@ public class ChatService {
 
         return answer;
     }
+
+    public void validateChatHistoryOwnership(Long userId, Long chatHistoryId) {
+        historyRepo.findById(chatHistoryId)
+                .filter(h -> h.getUser().getUserId().equals(userId))
+                .orElseThrow(() -> new IllegalArgumentException("해당 채팅 기록을 조회할 수 없습니다."));
+    }
+
+    public Map<String, Object> getSessionMessagesFromPython(Long sessionId) {
+        return pythonWebClient.get()
+                .uri("/api/chat/sessions/{id}", sessionId)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .block();
+    }
 }

@@ -82,4 +82,6 @@ public class User {
     public void setOauthId(String oauthId) {
         this.oauthId = oauthId;
     }
+
+
 }
