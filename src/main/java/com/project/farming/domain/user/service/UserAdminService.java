@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 public class UserAdminService {
 
     private final UserRepository userRepository;
+    private final AuthService authService;
     private final ImageFileService imageFileService;
 
     /**
@@ -33,9 +34,9 @@ public class UserAdminService {
      * @return 각 사용자 정보의 Response DTO 리스트
      */
     public List<UserAdminResponse> findAllUsers() {
-        List<User> userList = userRepository.findAllByOrderByNicknameAsc();
+        List<User> userList = userRepository.findAllByOrderByUserIdAsc();
         if (userList.isEmpty()) {
-            throw new UserNotFoundException("등록된 사용자가 없습니다.");
+            log.info("등록된 사용자가 없습니다.");
         }
         return userList.stream()
                 .map(user -> toUserAdminResponseBuilder(user).build())
@@ -80,6 +81,7 @@ public class UserAdminService {
      * @param request 새로 저장할 사용자 정보
      * @param newFile 새로 업로드할 프로필 이미지 파일 (선택적)
      */
+    @Transactional
     public void updateUser(Long userId, UserAdminRequest request, MultipartFile newFile) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
@@ -102,6 +104,16 @@ public class UserAdminService {
     }
 
     /**
+     * 특정 사용자 삭제
+     *
+     * @param userId 삭제할 사용자의 ID
+     */
+    @Transactional
+    public void deleteUser(Long userId) {
+        authService.deleteMyPageInfo(userId);
+    }
+
+    /**
      * Response DTO로 변환
      *
      * @param user Response DTO로 변환할 사용자 정보 엔티티
@@ -118,5 +130,22 @@ public class UserAdminService {
                 .fcmToken(user.getFcmToken())
                 .subscriptionStatus(user.getSubscriptionStatus())
                 .profileImageUrl(user.getProfileImageFile().getImageUrl());
+    }
+
+    /**
+     * NoticeService에서 사용
+     * - 모든 사용자의 FCM 토큰 리스트 반환
+     *
+     * @return 모든 사용자의 FCM 토큰 리스트
+     */
+    public List<String> getUserFcmTokenList() {
+        List<String> fcmTokens = userRepository.findAll().stream()
+                .map(User::getFcmToken)
+                .filter(token -> token != null && !token.isBlank())
+                .collect(Collectors.toList());
+        if (fcmTokens.isEmpty()) {
+            throw new UserNotFoundException("FCM 토큰이 저장된 사용자가 존재하지 않습니다.");
+        }
+        return fcmTokens;
     }
 }

@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>사용자 정보 수정</title>
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
 </head>
 <body th:replace="~{layout::layout}">
 <div th:fragment="content">
@@ -12,13 +14,13 @@
             <tr>
                 <td><label for="id">email(아이디 - 필수):</label></td>
                 <td>
-                    <input type="text" id="id" name="id" th:value="${user.email}">
+                    <input type="text" id="id" name="email" th:value="${user.email}" required>
                 </td>
             </tr>
             <tr>
                 <td><label for="nickname">nickname(필수 - 2자 이상 10자 이하):</label></td>
                 <td>
-                    <input type="text" id="nickname" name="nickname" th:value="${user.nickname}">
+                    <input type="text" id="nickname" name="nickname" th:value="${user.nickname}" required>
                 </td>
             </tr>
             <tr>
@@ -34,11 +36,11 @@
                 </td>
             </tr>
             <tr>
-                <td><label for="role">권한 설정(기존 - [[${user.role}]]): </label></td>
+                <td><label for="role">권한 설정(필수) (기존 - [[${user.role}]]): </label></td>
                 <td>
-                    <select id="role" name="role">
-                        <option value="USER">사용자</option>
-                        <option value="ADMIN">관리자</option>
+                    <select id="role" name="role" required>
+                        <option value="USER">USER(사용자)</option>
+                        <option value="ADMIN">ADMIN(관리자)</option>
                     </select>
                 </td>
             </tr>
@@ -49,9 +51,9 @@
                 </td>
             </tr>
             <tr>
-                <td><label for="subscriptionStatus">subscriptionStatus:</label></td>
+                <td><label for="subscriptionStatus">subscriptionStatus(필수):</label></td>
                 <td>
-                    <input type="text" id="subscriptionStatus" name="subscriptionStatus" th:value="${user.subscriptionStatus}">
+                    <input type="text" id="subscriptionStatus" name="subscriptionStatus" th:value="${user.subscriptionStatus}" required>
                 </td>
             </tr>
             <tr>
@@ -61,13 +63,21 @@
                 </td>
             </tr>
             <tr>
-                <td><label for="file">이미지 변경:</label></td>
+                <td><label for="file">프로필 이미지 변경:</label></td>
                 <td>
-                    <input type="file" id="file" name="profileImageFile">
+                    <input type="file" id="file" name="imageFile">
+                </td>
+            </tr>
+            <tr th:if="${param.error}">
+                <td colspan="2" style="color:red;">
+                    사용자 정보 수정에 실패했습니다. 다시 한 번 시도해 주세요.
                 </td>
             </tr>
             <tr>
-                <td colspan="2">
+                <td>
+                    <a th:href="@{/admin/users/{userId}(userId=${param.userId})}">취소</a>
+                </td>
+                <td>
                     <input type="submit" value="수정">
                 </td>
             </tr>
