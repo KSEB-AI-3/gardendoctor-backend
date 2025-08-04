@@ -67,7 +67,8 @@ public class FarmAdminService {
 
     /**
      * 텃밭 목록 검색(고유번호순)
-     * - 텃밭의 이름 또는 주소(도로명주소, 지번주소)로 검색
+     * - 텃밭의 이름으로 검색
+     * - 텃밭의 주소(도로명주소, 지번주소)로 검색
      * - 일부 정보만 반환
      *
      * @param searchType 검색 조건(name 또는 address) - 기본값은 name

@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>텃밭 정보 등록</title>
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
 </head>
 <body th:replace="~{layout::layout}">
 <div th:fragment="content">
@@ -12,7 +14,7 @@
             <tr>
                 <td><label for="id">텃밭 고유번호(필수):</label></td>
                 <td>
-                    <input type="number" id="id" name="gardenUniqueId">
+                    <input type="number" id="id" name="gardenUniqueId" required>
                 </td>
             </tr>
             <tr>
@@ -36,7 +38,7 @@
             <tr>
                 <td><label for="lotNumber">지번주소(필수)(주소 1개만 입력 시 지번주소 또는 도로명주소 입력):</label></td>
                 <td>
-                    <input type="text" id="lotNumber" name="lotNumberAddress">
+                    <input type="text" id="lotNumber" name="lotNumberAddress" required>
                 </td>
             </tr>
             <tr>
@@ -72,11 +74,19 @@
             <tr>
                 <td><label for="file">텃밭 이미지:</label></td>
                 <td>
-                    <input type="file" id="file" name="farmImageFile">
+                    <input type="file" id="file" name="imageFile">
+                </td>
+            </tr>
+            <tr th:if="${param.error}">
+                <td colspan="2" style="color:red;">
+                    텃밭 정보 등록에 실패했습니다. 다시 한 번 시도해 주세요.
                 </td>
             </tr>
             <tr>
-                <td colspan="2">
+                <td>
+                    <a th:href="@{/admin/farms/{farmId}(farmId=${param.farmId})}">취소</a>
+                </td>
+                <td>
                     <input type="submit" value="등록">
                 </td>
             </tr>

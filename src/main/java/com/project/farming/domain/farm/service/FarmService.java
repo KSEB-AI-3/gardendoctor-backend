@@ -34,7 +34,7 @@ public class FarmService {
     public List<FarmResponse> findAllFarms() {
         List<Farm> foundFarms = farmRepository.findAllByOrderByGardenUniqueIdAsc();
         if (foundFarms.isEmpty()) {
-            throw new FarmNotFoundException("등록된 텃밭이 없습니다.");
+            log.info("등록된 텃밭이 없습니다.");
         }
         return foundFarms.stream()
                 .map(farm -> toFarmResponseBuilder(farm, false).build())
@@ -43,7 +43,7 @@ public class FarmService {
 
     /**
      * 텃밭 목록 검색(고유번호순)
-     * - 텃밭의 이름 또는 주소(도로명주소, 지번주소)로 검색
+     * - 텃밭의 이름 또는 주소(도로명주소, 지번주소)로 검색(통합)
      * - 일부 정보만 반환
      *
      * @param keyword 검색어(텃밭 이름 또는 주소)

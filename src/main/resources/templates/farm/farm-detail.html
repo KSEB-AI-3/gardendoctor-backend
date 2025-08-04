@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>텃밭 상세 정보</title>
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
 </head>
 <body th:replace="~{layout::layout}">
 <div th:fragment="content">
@@ -49,6 +51,7 @@
         <tfoot>
         <tr>
             <td colspan="13">
+                <a th:href="@{/admin/farms}">목록</a>
                 <a th:href="@{/admin/farms/update?farmId={farmId}(farmId=${farm.farmId})}">텃밭 정보 수정</a>
                 <a th:href="@{/admin/farms/delete?farmId={farmId}(farmId=${farm.farmId})}">텃밭 정보 삭제</a>
             </td>

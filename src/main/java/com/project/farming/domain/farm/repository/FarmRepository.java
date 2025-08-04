@@ -18,7 +18,7 @@ public interface FarmRepository extends JpaRepository<Farm, Long> {
         WHERE road_name_address LIKE :keyword OR lot_number_address LIKE :keyword
         ORDER BY garden_unique_id ASC
         """, nativeQuery = true)
-    List<Farm> findByAddressContainingOrderByGardenUniqueIdAsc(String keyword);
+    List<Farm> findByAddressContainingOrderByGardenUniqueIdAsc(@Param("keyword") String keyword);
 
     @Query(value = """
         SELECT * FROM farm_info

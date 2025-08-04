@@ -22,14 +22,14 @@ public class FarmController {
     private final FarmService farmService;
 
     @GetMapping
-    @Operation(summary = "전체 텃밭 목록 조회", description = "DB에 등록된 모든 텃밭을 고유번호순으로 조회합니다.")
+    @Operation(summary = "전체 텃밭 목록 조회", description = "DB에 등록된 모든 텃밭을 고유번호순으로 조회합니다. 일부 정보만 반환합니다.")
     public ResponseEntity<List<FarmResponse>> getAllFarms() {
         return ResponseEntity.ok(farmService.findAllFarms());
     }
 
     @GetMapping("/search")
     @Operation(summary = "텃밭 목록 검색",
-            description = "사용자가 입력한 키워드(텃밭명 또는 도로명/지번 주소)를 포함하는 모든 텃밭을 고유번호순으로 조회합니다.")
+            description = "사용자가 입력한 키워드(텃밭명 또는 도로명/지번 주소)를 포함하는 모든 텃밭을 고유번호순으로 조회합니다. 일부 정보만 반환합니다.")
     public ResponseEntity<List<FarmResponse>> searchFarms(
             @Parameter(description = "텃밭명 또는 주소(도로명/지번)")
             @RequestParam String keyword) {
