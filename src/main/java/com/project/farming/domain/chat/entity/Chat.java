@@ -21,8 +21,8 @@ public class Chat {
     private Long chatId;
 
     // 한 명의 사용자는 하나의 채팅방을 가집니다 (1:1 관계)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     // Python FastAPI 서버에서 관리하는 세션의 ID

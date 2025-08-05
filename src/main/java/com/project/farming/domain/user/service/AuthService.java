@@ -167,11 +167,7 @@ public class AuthService {
                 .refreshToken(newRefreshTokenString)
                 .build();
     }
-    // ⭐ userId (Long)로 사용자를 조회하는 메서드 추가
-    public Optional<User> getUserById(Long userId) {
-        return userRepository.findById(userId);
-    }
-    // 내 정보 조회
+    @Transactional(readOnly = true)
     public UserMyPageResponseDto getMyPageInfo(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("유저가 없습니다."));

@@ -17,7 +17,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
      * @param user 조회할 사용자 엔티티
      * @return Optional<Chat>
      */
-    Optional<Chat> findByUser(User user);
+    List<Chat> findByUser(User user);
 
     List<Chat> findByUser_UserId(Long userId);
 }

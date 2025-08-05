@@ -5,17 +5,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class PythonSessionDto {
+import lombok.Getter;
+import lombok.Setter;
 
-    @JsonProperty("id")
+@Getter
+@Setter
+public class PythonSessionDto {
     private Long id;
+    private String query;
 
     @JsonProperty("created_at")
     private String createdAt;
 
     @JsonProperty("updated_at")
     private String updatedAt;
+
+    @JsonProperty("message_count")
+    private Integer messageCount;
 }

@@ -1,5 +1,6 @@
 package com.project.farming.domain.userplant.entity;
 
+import com.project.farming.domain.diary.entity.DiaryUserPlant;
 import com.project.farming.domain.farm.entity.Farm;
 import com.project.farming.domain.plant.entity.Plant;
 import com.project.farming.domain.user.entity.User;
@@ -7,6 +8,7 @@ import com.project.farming.global.image.entity.ImageFile;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -87,4 +89,8 @@ public class UserPlant {
     public void updateUserPlantImage(ImageFile userPlantImageFile) {
         this.userPlantImageFile = userPlantImageFile;
     }
+
+    //UserPlant 삭제시 연결된 DiaryUserPlant, Diary도 삭제되게 처리.
+    @OneToMany(mappedBy = "userPlant", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<DiaryUserPlant> diaryUserPlants;
 }

@@ -134,27 +134,6 @@ public class AuthController {
     @Operation(summary = "현재 사용자 정보 조회", description = "인증된 사용자의 상세 정보를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공",
-                    content = @Content(schema = @Schema(implementation = UserMeResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
-                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
-                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class)))
-    })
-    @SecurityRequirement(name = "jwtAuth")
-    @GetMapping("/user/me")
-    public ResponseEntity<UserMeResponseDto> getCurrentUser(
-            @Parameter(hidden = true)
-            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        Long userId = customUserDetails.getUser().getUserId();
-        // 서비스에서 User 객체를 Optional로 받아서 DTO로 변환
-        return authService.getUserById(userId)
-                .map(user -> ResponseEntity.ok(UserMeResponseDto.from(user)))
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @Operation(summary = "내 정보 페이지 조회", description = "로그인한 사용자의 마이페이지 정보를 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "마이페이지 정보 조회 성공",
                     content = @Content(schema = @Schema(implementation = UserMyPageResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
                     content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
@@ -162,14 +141,16 @@ public class AuthController {
                     content = @Content(schema = @Schema(implementation = AuthResponseDto.class)))
     })
     @SecurityRequirement(name = "jwtAuth")
-    @GetMapping("/me")
-    public ResponseEntity<UserMyPageResponseDto> getMyPage(
+    @GetMapping("/user/me")
+    public ResponseEntity<UserMyPageResponseDto> getCurrentUser(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         Long userId = customUserDetails.getUser().getUserId();
-        UserMyPageResponseDto response = authService.getMyPageInfo(userId);
-        return ResponseEntity.ok(response);
+        UserMyPageResponseDto responseDto = authService.getMyPageInfo(userId);
+
+        return ResponseEntity.ok(responseDto);
     }
+
 
     @Operation(summary = "회원 탈퇴", description = "로그인한 사용자의 계정을 삭제합니다. (하드 삭제)")
     @ApiResponses(value = {

@@ -19,7 +19,7 @@ public class DiaryUserPlant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long diaryUserPlantId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY ,cascade = CascadeType.REMOVE)
     @JoinColumn(name = "diary_id", nullable = false)
     private Diary diary;
 
@@ -31,4 +31,5 @@ public class DiaryUserPlant {
     protected void setDiary(Diary diary) {
         this.diary = diary;
     }
+
 }

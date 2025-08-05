@@ -1,16 +1,21 @@
 package com.project.farming.domain.chat.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
 @Builder
 public class ChatRoomDto {
+    private Long chatId;             // Spring DB의 chat ID
+    private Long pythonSessionId;    // Python 세션 ID
+    private String query;            // 첫 번째 사용자 메시지
 
-    private Long chatId; // Spring DB의 채팅방 ID
-    private Long pythonSessionId; // Python 서버의 세션 ID
+    @JsonProperty("created_at")
+    private String createdAt;
+
+    @JsonProperty("updated_at")
+    private String updatedAt;
+
+    @JsonProperty("message_count")
+    private Integer messageCount;
 }

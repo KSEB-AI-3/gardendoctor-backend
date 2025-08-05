@@ -1,8 +1,17 @@
 package com.project.farming.domain.user.entity;
 
+import com.project.farming.domain.analysis.entity.PhotoAnalysis;
+import com.project.farming.domain.chat.entity.Chat;
+import com.project.farming.domain.notification.entity.Notification;
+import com.project.farming.domain.subscription.entity.Subscription;
+import com.project.farming.domain.userplant.entity.UserPlant;
 import com.project.farming.global.image.entity.ImageFile;
+import com.project.farming.global.jwtToken.RefreshToken;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
@@ -82,6 +91,30 @@ public class User {
     public void setOauthId(String oauthId) {
         this.oauthId = oauthId;
     }
+
+    // 1. UserPlant 연관관계
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<UserPlant> userPlants;
+
+    // 2. Notification 연관관계
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Notification> notifications;
+
+    // 3. Subscription 연관관계
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Subscription> subscriptions;
+
+    // 4. RefreshToken 연관관계
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<RefreshToken> refreshTokens;
+
+    // 5. Chat 연관관계
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Chat> chats;
+
+    // 6. PhotoAnalysis 엔티티와의 연관관계 추가
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<PhotoAnalysis> photoAnalyses = new ArrayList<>();
 
 
 }

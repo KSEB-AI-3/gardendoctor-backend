@@ -2,7 +2,6 @@ package com.project.farming.domain.analysis.service;
 
 import com.project.farming.domain.analysis.dto.AnalysisRequest;
 import com.project.farming.domain.analysis.dto.AnalysisResult;
-import com.project.farming.domain.analysis.dto.PhotoAnalysisSidebarResponseDto;
 import com.project.farming.domain.analysis.entity.PhotoAnalysis;
 import com.project.farming.domain.analysis.repository.PhotoAnalysisRepository;
 import com.project.farming.domain.user.entity.User;
@@ -13,16 +12,14 @@ import com.project.farming.global.image.entity.ImageFile;
 import com.project.farming.global.image.service.ImageFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,14 +29,14 @@ public class PhotoAnalysisService {
     private final PhotoAnalysisRepository photoAnalysisRepository;
     private final UserRepository userRepository;
     private final ImageFileService imageFileService;
-    private final RestTemplate restTemplate = new RestTemplate();
 
-    private final String AI_SERVER_URL = "http://localhost:8000/diagnose-by-url";
+    @Qualifier("pythonWebClient")
+    private final WebClient pythonWebClient;
 
+    private final String AI_SERVER_ENDPOINT = "/diagnose-by-url";
 
     /**
      * 사진 분석 후 DB 저장
-     * - cropName, 사진 둘 다 반드시 받아야 함
      * - 동일 유저 10초 이내 중복 요청 차단
      */
     @Transactional
@@ -51,31 +48,30 @@ public class PhotoAnalysisService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. userId=" + userId));
 
-        PhotoAnalysis photoAnalysis = photoAnalysisRepository.findTopByUserUserIdOrderByCreatedAtDesc(userId).orElse(null);
-        if (photoAnalysis != null && photoAnalysis.getCreatedAt().isAfter(LocalDateTime.now().minusSeconds(10))) {
+        PhotoAnalysis lastAnalysis = photoAnalysisRepository.findTopByUserUserIdOrderByCreatedAtDesc(userId).orElse(null);
+        if (lastAnalysis != null && lastAnalysis.getCreatedAt().isAfter(LocalDateTime.now().minusSeconds(10))) {
             throw new IllegalStateException("잠시 후 다시 시도해 주세요. 연속 분석 요청은 10초 후 가능합니다.");
         }
 
-        // 1) S3 업로드
+        // 1) 이미지 S3 업로드
         ImageFile uploadedImage = imageFileService.uploadImage(file, ImageDomainType.PHOTO, userId);
 
-        // 2) AI 서버 분석 요청
+        // 2) WebClient를 통한 AI 서버 호출
         AnalysisRequest request = new AnalysisRequest(uploadedImage.getImageUrl());
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<AnalysisRequest> entity = new HttpEntity<>(request, headers);
+        AnalysisResult result = pythonWebClient.post()
+                .uri(AI_SERVER_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(AnalysisResult.class)
+                .block();
 
-        ResponseEntity<AnalysisResult> response = restTemplate.postForEntity(
-                AI_SERVER_URL, entity, AnalysisResult.class);
-
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+        if (result == null) {
             throw new AiAnalysisException("AI 서버 분석에 실패하였습니다.");
         }
 
-        AnalysisResult result = response.getBody();
-
-        // 3) PhotoAnalysis 저장
+        // 3) 분석 결과 저장
         PhotoAnalysis saved = PhotoAnalysis.builder()
                 .user(user)
                 .photoImageFile(uploadedImage)
