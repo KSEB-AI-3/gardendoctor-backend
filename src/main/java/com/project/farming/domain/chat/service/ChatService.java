@@ -1,5 +1,6 @@
 package com.project.farming.domain.chat.service;
 
+import com.project.farming.domain.chat.dto.ChatResponseDto;
 import com.project.farming.domain.chat.dto.ChatRoomDto;
 import com.project.farming.domain.chat.dto.PythonChatDto;
 import com.project.farming.domain.chat.dto.PythonSessionDto;
@@ -30,42 +31,60 @@ public class ChatService {
      * Python 챗봇 에이전트에게 질문하고 답변을 받습니다.
      * 항상 새로운 세션을 생성합니다.
      *
-     * @param user     인증된 사용자 또는 null
-     * @param question 클라이언트에서 받은 질문
+     * @param user      인증된 사용자 또는 null
+     * @param question  클라이언트에서 받은 질문
+     * @param chatId 세션 id
      * @return 에이전트가 생성한 답변
      */
     @Transactional
-    public String askPythonAgent(User user, String question) {
-        // 1. Python 서버로 보낼 요청 생성 (세션 ID 없음 = 새 세션)
-        PythonChatDto.PythonChatRequest request = new PythonChatDto.PythonChatRequest(null, question);
+    public ChatResponseDto askPythonAgent(User user, Long chatId, String question) {
+        Long pythonSessionId = null;
 
-        // 2. Python FastAPI 서버 호출
-        PythonChatDto.PythonChatResponse response = pythonWebClient.post()
+        // --- 요청 처리: 클라이언트가 보낸 chatId(세션 ID)가 있는 경우 ---
+        if (chatId != null) {
+            Chat existingChat = chatRepository.findById(chatId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
+
+            // (보안) 본인 채팅방이 맞는지 확인
+            if (user != null && !existingChat.getUser().getUserId().equals(user.getUserId())) {
+                throw new SecurityException("해당 채팅방에 접근할 권한이 없습니다.");
+            }
+            // FastAPI에 보낼 pythonSessionId를 DB에서 조회
+            pythonSessionId = existingChat.getPythonSessionId();
+        }
+        // --- 요청 처리: 클라이언트가 보낸 chatId가 null인 경우(첫 채팅), pythonSessionId는 그대로 null ---
+
+        // FastAPI 서버에 요청 (pythonSessionId가 null이면 FastAPI가 새 세션을 만듦)
+        PythonChatDto.PythonChatRequest request = new PythonChatDto.PythonChatRequest(pythonSessionId, question);
+
+        PythonChatDto.PythonChatResponse responseFromPython = pythonWebClient.post()
                 .uri("/api/chat")
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(PythonChatDto.PythonChatResponse.class)
                 .block();
 
-        if (response == null || response.getMessages() == null || response.getMessages().isEmpty()) {
-            return "죄송해요, 응답을 받지 못했습니다.";
-        }
-
-        // 3. 사용자 인증된 경우, 세션 정보 DB에 저장
-        if (user != null) {
-            Chat newChat = Chat.builder()
-                    .user(user)
-                    .pythonSessionId(response.getId())
-                    .build();
-            chatRepository.save(newChat);
-        }
-
-        // 4. 마지막 assistant 메시지를 찾아서 반환
-        return response.getMessages().stream()
+        String answer = responseFromPython.getMessages().stream()
                 .filter(msg -> "assistant".equalsIgnoreCase(msg.getRole()))
                 .reduce((first, second) -> second)
                 .map(PythonChatDto.PythonChatMessage::getQuery)
-                .orElse("죄송해요, 답변을 찾을 수 없습니다.");
+                .orElse("답변을 찾을 수 없습니다.");
+
+        // --- 응답 처리: 첫 채팅이었던 경우 ---
+        if (chatId == null && user != null) {
+            Chat newChat = Chat.builder()
+                    .user(user)
+                    .pythonSessionId(responseFromPython.getId()) // FastAPI가 새로 만든 세션ID 저장
+                    .build();
+            Chat savedChat = chatRepository.save(newChat);
+            chatId = savedChat.getChatId(); // 새로 생성된 DB의 chatId를 확정
+        }
+
+        // 최종적으로 클라이언트에게 보낼 응답 생성
+        return ChatResponseDto.builder()
+                .answer(answer)
+                .chatId(chatId) // 기존 chatId 또는 새로 생성된 chatId
+                .build();
     }
 
     public void validateChatHistoryOwnership(Long userId, Long chatId) {

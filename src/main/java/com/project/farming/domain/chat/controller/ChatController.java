@@ -1,6 +1,7 @@
 package com.project.farming.domain.chat.controller;
 
 import com.project.farming.domain.chat.dto.ChatRequestDto;
+import com.project.farming.domain.chat.dto.ChatResponseDto;
 import com.project.farming.domain.chat.dto.ChatRoomDto;
 import com.project.farming.domain.chat.dto.PythonChatDto;
 import com.project.farming.domain.chat.entity.Chat;
@@ -29,17 +30,19 @@ public class ChatController {
 
     @Operation(summary = "챗봇 질문 전송", description = "사용자의 질문을 Python 챗봇 서버로 보내고 응답을 반환합니다. 대화 맥락이 유지됩니다.")
     @PostMapping
-    public ResponseEntity<Map<String, String>> chat(
+    public ResponseEntity<ChatResponseDto> chat(
             @RequestBody ChatRequestDto requestBody,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        String question = requestBody.getQuery();
-        // 인증 정보가 없으면 user = null
         User user = (userDetails != null ? userDetails.getUser() : null);
 
-        // 서비스 로직은 세션 관리를 포함하여 완전히 변경되었습니다.
-        String answer = chatService.askPythonAgent(user, question);
-        return ResponseEntity.ok(Map.of("answer", answer));
+        ChatResponseDto responseDto = chatService.askPythonAgent(
+                user,
+                requestBody.getChatId(), // 클라이언트가 보낸 chatId
+                requestBody.getQuery()
+        );
+
+        return ResponseEntity.ok(responseDto);
     }
 
     @Operation(summary = "챗봇 세션 메시지 조회", description = "FastAPI에서 특정 세션의 모든 메시지 중 챗봇 답변(assistant)만 조회합니다.")

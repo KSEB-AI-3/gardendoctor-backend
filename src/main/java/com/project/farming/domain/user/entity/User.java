@@ -96,7 +96,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<UserPlant> userPlants;
 
-    // 2. Notification 연관관계
+    // 2. Notification 연관관계\
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Notification> notifications;
 
@@ -113,6 +113,7 @@ public class User {
     private List<Chat> chats;
 
     // 6. PhotoAnalysis 엔티티와의 연관관계 추가
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PhotoAnalysis> photoAnalyses = new ArrayList<>();
 

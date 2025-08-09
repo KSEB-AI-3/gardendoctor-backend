@@ -20,7 +20,7 @@ public class Chat {
     @Column(name = "chat_id")
     private Long chatId;
 
-    // 한 명의 사용자는 하나의 채팅방을 가집니다 (1:1 관계)
+    // 한 명의 사용자는 여러개의 채팅방을 가집니다 (1:N 관계)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
