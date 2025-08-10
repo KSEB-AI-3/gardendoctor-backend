@@ -20,7 +20,12 @@ public class UserAdminRequest {
 
     private String oauthProvider;
     private String oauthId;
+    
+    @NotBlank(message = "권한은 필수 입력 값입니다.")
     private String role;
+    
     private String fcmToken;
+
+    @NotBlank(message = "구독 상태는 필수 입력 값입니다.")
     private String subscriptionStatus;
 }

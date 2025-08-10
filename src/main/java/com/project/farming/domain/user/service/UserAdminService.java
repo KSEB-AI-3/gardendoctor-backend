@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class UserAdminService {
@@ -33,6 +32,7 @@ public class UserAdminService {
      *
      * @return 각 사용자 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<UserAdminResponse> findAllUsers() {
         List<User> userList = userRepository.findAllByOrderByUserIdAsc();
         if (userList.isEmpty()) {
@@ -51,6 +51,7 @@ public class UserAdminService {
      * @param keyword 검색어(별명 또는 이메일)
      * @return 검색된 사용자 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<UserAdminResponse> findUsersByKeyword(String searchType, String keyword) {
         List<User> foundUsers = switch (searchType) {
             case "name" -> userRepository.findByNicknameContainingOrderByNicknameAsc(keyword);
@@ -68,6 +69,7 @@ public class UserAdminService {
      * @param userId 조회할 사용자 ID
      * @return 사용자 정보 Response DTO
      */
+    @Transactional(readOnly = true)
     public UserAdminResponse findUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
@@ -144,6 +146,7 @@ public class UserAdminService {
                 .filter(token -> token != null && !token.isBlank())
                 .collect(Collectors.toList());
         if (fcmTokens.isEmpty()) {
+            log.error("FCM 토큰이 저장된 사용자가 존재하지 않습니다.");
             throw new UserNotFoundException("FCM 토큰이 저장된 사용자가 존재하지 않습니다.");
         }
         return fcmTokens;
