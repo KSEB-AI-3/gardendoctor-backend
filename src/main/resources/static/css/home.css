@@ -25,6 +25,22 @@ body {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
+.user-btn {
+    background-color: #0a58ca !important;
+}
+
+.user-btn:hover {
+    background-color: #0b62e3 !important;
+}
+
+.plant-btn {
+    background-color: #1f7a33 !important;
+}
+
+.plant-btn:hover {
+    background-color: #198754 !important;
+}
+
 .admin-name {
     font-weight: bold;
 }
