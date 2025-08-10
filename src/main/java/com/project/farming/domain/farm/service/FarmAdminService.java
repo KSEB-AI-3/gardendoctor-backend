@@ -4,6 +4,7 @@ import com.project.farming.domain.farm.dto.FarmAdminRequest;
 import com.project.farming.domain.farm.dto.FarmResponse;
 import com.project.farming.domain.farm.entity.Farm;
 import com.project.farming.domain.farm.repository.FarmRepository;
+import com.project.farming.domain.userplant.repository.UserPlantRepository;
 import com.project.farming.global.exception.FarmNotFoundException;
 import com.project.farming.global.exception.ImageFileNotFoundException;
 import com.project.farming.global.image.entity.DefaultImages;
@@ -18,10 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class FarmAdminService {
@@ -29,9 +30,11 @@ public class FarmAdminService {
     private final FarmRepository farmRepository;
     private final ImageFileService imageFileService;
     private final ImageFileRepository imageFileRepository;
+    private final UserPlantRepository userPlantRepository;
 
     /**
      * 새로운 텃밭 정보 등록
+     * - 값 미입력시 기본값으로 저장
      *
      * @param request 등록할 텃밭 정보
      * @param file 업로드할 텃밭 이미지 파일 (선택적)
@@ -39,19 +42,20 @@ public class FarmAdminService {
     @Transactional
     public void saveFarm(FarmAdminRequest request, MultipartFile file) {
         if (farmRepository.existsByGardenUniqueId(request.getGardenUniqueId())) {
+            log.error("이미 존재하는 텃밭입니다: {}", request.getGardenUniqueId());
             throw new IllegalArgumentException("이미 존재하는 텃밭입니다: " + request.getGardenUniqueId());
         }
         ImageFile defaultImageFile = getDefaultImageFile();
         Farm newFarm = Farm.builder()
                 .gardenUniqueId(request.getGardenUniqueId())
-                .operator(request.getOperator())
-                .farmName(request.getFarmName())
-                .roadNameAddress(request.getRoadNameAddress())
-                .lotNumberAddress(request.getLotNumberAddress())
-                .facilities(request.getFacilities())
-                .contact(request.getContact())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
+                .operator(getOrDefault(request.getOperator()))
+                .farmName(getOrDefault(request.getFarmName()))
+                .roadNameAddress(getOrDefault(request.getRoadNameAddress()))
+                .lotNumberAddress(getOrDefault(request.getLotNumberAddress()))
+                .facilities(getOrDefault(request.getFacilities()))
+                .contact(getOrDefault(request.getContact()))
+                .latitude(getOrDefault(request.getLatitude()))
+                .longitude(getOrDefault(request.getLongitude()))
                 .available(request.getAvailable())
                 .farmImageFile(defaultImageFile)
                 .build();
@@ -75,11 +79,15 @@ public class FarmAdminService {
      * @param keyword 검색어(텃밭 이름 또는 주소)
      * @return 검색된 텃밭 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<FarmResponse> findFarmsByKeyword(String searchType, String keyword) {
         List<Farm> foundFarms = switch (searchType) {
             case "name" -> farmRepository.findByFarmNameContainingOrderByGardenUniqueIdAsc(keyword);
             case "address" -> farmRepository.findByAddressContainingOrderByGardenUniqueIdAsc("%"+keyword+"%");
-            default -> throw new IllegalArgumentException("지원하지 않는 검색 조건입니다: " + searchType);
+            default -> {
+                log.error("지원하지 않는 검색 조건입니다: {}", searchType);
+                throw new IllegalArgumentException("지원하지 않는 검색 조건입니다: " + searchType);
+            }
         };
         return foundFarms.stream()
                 .map(farm -> FarmResponse.builder()
@@ -96,6 +104,7 @@ public class FarmAdminService {
 
     /**
      * 특정 텃밭 정보 수정
+     * - 값 미입력시 기본값으로 수정
      *
      * @param farmId 수정할 텃밭 정보의 ID
      * @param request 새로 저장할 텃밭 정보
@@ -111,23 +120,73 @@ public class FarmAdminService {
                     newFile, ImageDomainType.FARM, farmId);
             farm.updateFarmImage(imageFile);
         }
-        farm.updateFarmInfo(request.getGardenUniqueId(), request.getOperator(), request.getFarmName(),
-                request.getRoadNameAddress(), request.getLotNumberAddress(),
-                request.getFacilities(), request.getContact(),
-                request.getLatitude(), request.getLongitude(), request.getAvailable());
+        farm.updateFarmInfo(request.getGardenUniqueId(),
+                getOrDefault(request.getOperator()), getOrDefault(request.getFarmName()),
+                getOrDefault(request.getRoadNameAddress()), getOrDefault(request.getLotNumberAddress()),
+                getOrDefault(request.getFacilities()), getOrDefault(request.getContact()),
+                getOrDefault(request.getLatitude()), getOrDefault(request.getLongitude()), request.getAvailable());
         farmRepository.save(farm);
     }
 
     /**
      * 특정 텃밭 정보 삭제
+     * - 삭제할 텃밭과 매핑된 userPlant가 있다면
+     *  해당 userPlant의 텃밭을 '기타(Other)' 로 변경
      *
      * @param farmId 삭제할 텃밭 정보의 ID
      */
     @Transactional
     public void deleteFarm(Long farmId) {
         Farm farm = findFarmById(farmId);
+        if ("기타(Other)".equals(farm.getFarmName())) {
+            log.error("기본 텃밭 정보는 삭제할 수 없습니다.");
+            throw new RuntimeException("기본 텃밭 정보는 삭제할 수 없습니다.");
+        }
+        Farm otherFarm = farmRepository.getOtherFarm("기타(Other)")
+                .orElseThrow(() -> {
+                    log.error("DB에 '기타(Other)' 항목이 존재하지 않습니다.");
+                    return new FarmNotFoundException("DB에 '기타(Other)' 항목이 존재하지 않습니다.");
+                });
+        String plantingPlace = getPlantingPlace(farm.getFarmName(), farm.getLotNumberAddress());
+        int updatedCount = userPlantRepository.reassignFarm(otherFarm, plantingPlace, farm);
+        if (updatedCount == 0) log.info("해당 텃밭({})과 매핑된 사용자 식물이 없습니다.", farmId);
+        else log.info(
+                "해당 텃밭({})과 매핑된 사용자 식물 {}개의 텃밭 정보가 '기타(Other)'로 수정되었습니다.", farmId, updatedCount);
         farmRepository.delete(farm);
         imageFileService.deleteImage(farm.getFarmImageFile().getImageFileId()); // 기존 이미지 파일
+    }
+
+    /**
+     * 텃밭 기본 이미지 반환
+     *
+     * @return 텃밭 기본 이미지
+     */
+    private ImageFile getDefaultImageFile() {
+        return imageFileRepository.findByS3Key(DefaultImages.DEFAULT_FARM_IMAGE)
+                .orElseThrow(() -> {
+                    log.error("기본 텃밭 이미지가 존재하지 않습니다.");
+                    return new ImageFileNotFoundException("기본 텃밭 이미지가 존재하지 않습니다.");
+                });
+    }
+
+    /**
+     * 기본값 설정(String)
+     *
+     * @param val 확인할 값
+     * @return 기본값 또는 request 값
+     */
+    private String getOrDefault(String val) {
+        return val == null || val.isBlank() || val.equals("-") ? "N/A" : val;
+    }
+
+    /**
+     * 기본값 설정(Double)
+     *
+     * @param val 확인할 값
+     * @return 기본값 또는 request 값
+     */
+    private Double getOrDefault(Double val) {
+        return val == null ? 0.0 : val;
     }
 
     /**
@@ -138,16 +197,24 @@ public class FarmAdminService {
      */
     private Farm findFarmById(Long farmId) {
         return farmRepository.findById(farmId)
-                .orElseThrow(() -> new FarmNotFoundException("해당 텃밭이 존재하지 않습니다: " + farmId));
+                .orElseThrow(() -> {
+                    log.error("해당 텃밭이 존재하지 않습니다: {}", farmId);
+                    return new FarmNotFoundException("해당 텃밭이 존재하지 않습니다: " + farmId);
+                });
     }
 
     /**
-     * 텃밭 기본 이미지 반환
+     * 심은 장소 설정
      *
-     * @return 텃밭 기본 이미지
+     * @param oldFarmName 원래 텃밭 이름(Farm)
+     * @param lotNumberAddress 텃밭 이름이 없는 경우에 사용할 이름(주소)
+     * @return 설정된 심은 장소 이름
      */
-    private ImageFile getDefaultImageFile() {
-        return imageFileRepository.findByS3Key(DefaultImages.DEFAULT_FARM_IMAGE)
-                .orElseThrow(() -> new ImageFileNotFoundException("기본 텃밭 이미지가 존재하지 않습니다."));
+    private String getPlantingPlace(String oldFarmName, String lotNumberAddress) {
+        String plantingPlace = oldFarmName;
+        if (Objects.equals(plantingPlace, "N/A")) {
+            plantingPlace = lotNumberAddress;
+        }
+        return plantingPlace;
     }
 }

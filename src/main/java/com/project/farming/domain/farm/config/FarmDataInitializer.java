@@ -101,7 +101,7 @@ public class FarmDataInitializer implements CommandLineRunner {
     }
 
     private Farm createFarmFromRow(Row row, Map<String, Integer> columnIndexMap, ImageFile defaultImageFile) {
-        Integer gardenUniqueId = parseIntegerCell(row, columnIndexMap.get("gardenUniqueId")); // 텃밭 고유번호
+        int gardenUniqueId = parseIntegerCell(row, columnIndexMap.get("gardenUniqueId")); // 텃밭 고유번호
         String operator = getOrDefault(row, columnIndexMap.get("operator"), DEFAULT_STRING); // 운영주체
         String farmName = getOrDefault(row, columnIndexMap.get("farmName"), DEFAULT_STRING);
         String roadNameAddress = getOrDefault(row, columnIndexMap.get("roadNameAddress"), DEFAULT_STRING); // 도로명주소

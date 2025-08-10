@@ -58,7 +58,13 @@ public class FarmAdminController {
 
     @GetMapping
     @Operation(summary = "전체 텃밭 목록 조회 페이지 (관리자 전용)",
-            description = "DB에 등록된 모든 텃밭을 고유번호순으로 조회합니다. 일부 정보만 반환합니다. **관리자만 접근 가능합니다.**")
+            description = """
+                    DB에 등록된 모든 텃밭을 고유번호순으로 조회합니다.
+                    일부 정보만 반환합니다.
+                    (farmId, gardenUniqueId(고유번호), operator(운영주체), farmName(텃밭 이름),
+                     lotNumberAddress(주소), updatedAt(최종 수정일), farmImageUrl(이미지 URL))
+                    **관리자만 접근 가능합니다.**
+                    """)
     public String showFarmListPage(Model model) {
         List<FarmResponse> farmList = farmService.findAllFarms();
         model.addAttribute("farmList", farmList);
@@ -68,11 +74,14 @@ public class FarmAdminController {
     @GetMapping("/search")
     @Operation(summary = "텃밭 목록 검색 (관리자 전용)",
             description = """
-                    입력한 키워드(텃밭명(name) 또는 주소(address))를 포함하는 모든 텃밭을 고유번호순으로 조회합니다.
-                    일부 정보만 반환합니다. **관리자만 접근 가능합니다.**
+                    입력한 키워드(텃밭 이름(name) 또는 주소(address))를 포함하는 모든 텃밭을 고유번호순으로 조회합니다.
+                    일부 정보만 반환합니다.
+                    (farmId, gardenUniqueId(고유번호), operator(운영주체), farmName(텃밭 이름),
+                     lotNumberAddress(주소), updatedAt(최종 수정일), farmImageUrl(이미지 URL))
+                    **관리자만 접근 가능합니다.**
                     """)
     public String showSearchFarmListPage(
-            @Parameter(description = "검색 조건: 텃밭명(name) 또는 주소(address)")
+            @Parameter(description = "검색 조건: 텃밭 이름(name) 또는 주소(address)")
             @RequestParam(defaultValue = "name") String searchType,
             @RequestParam String keyword, Model model) {
         List<FarmResponse> farmList = farmAdminService.findFarmsByKeyword(searchType, keyword);
@@ -82,7 +91,10 @@ public class FarmAdminController {
 
     @GetMapping("/{farmId}")
     @Operation(summary = "특정 텃밭 정보 조회 페이지 (관리자 전용)",
-            description = "텃밭 ID에 해당하는 텃밭의 상세 정보를 조회합니다. **관리자만 접근 가능합니다.**")
+            description = """
+                    텃밭 ID에 해당하는 텃밭의 상세 정보를 조회합니다. 전체 정보를 반환합니다.
+                    **관리자만 접근 가능합니다.**
+                    """)
     public String showFarmPage(@PathVariable Long farmId, Model model) {
         FarmResponse farm = farmService.findFarm(farmId);
         model.addAttribute("farm", farm);
@@ -141,7 +153,7 @@ public class FarmAdminController {
     @Operation(summary = "주변 텃밭 정보 조회 테스트 페이지 (관리자 전용)",
             description = """
                     사용자의 현재 위치(위도, 경도)를 기준으로 원하는 반경(km) 내에 위치한 텃밭 정보를 조회하는 페이지 테스트 -
-                    **관리자만 접근 가능합니다.**
+                    전체 정보를 반환합니다. **관리자만 접근 가능합니다.**
                     """)
     public String showMapPage(Model model) {
         model.addAttribute("kakaoApiKey", kakaoApiKey);

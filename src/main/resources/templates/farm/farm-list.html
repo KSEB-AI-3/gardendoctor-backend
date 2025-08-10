@@ -2,57 +2,70 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <title>텃밭 목록 조회</title>
+    <link rel="stylesheet" href="/css/list.css">
     <link rel="stylesheet" href="/css/footer.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
 </head>
 <body th:replace="~{layout::layout}">
-<div th:fragment="content">
-    <h1>텃밭 목록</h1>
-    <!-- 텃밭 이름(name) 또는 주소(address)로 검색 -->
-    <form method="get" th:action="@{/admin/farms/search}">
-        <table>
-            <tr>
-                <td><select name="searchType">
-                    <option value="name">name</option>
-                    <option value="address">address</option>
-                </select></td>
-                <td><input type="text" name="keyword"></td>
-                <td><input type="submit" value="search"></td>
-            </tr>
-        </table>
-    </form>
+<div th:fragment="content" class="container">
+    <h2 class="mb-4" style="font-weight: bold;">🌱 텃밭 목록</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <form method="get" th:action="@{/admin/farms/search}" class="d-flex align-items-center gap-2 me-auto">
+            <div class="col-auto">
+                <select name="searchType" class="form-select">
+                    <option value="name">이름</option>
+                    <option value="address">주소</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <input type="text" name="keyword" class="form-control" placeholder="검색어 입력">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">검색</button>
+            </div>
+        </form>
 
-    <div>
-        <a th:href="@{/admin/farms/create}">텃밭 정보 등록</a>
+        <div class="d-flex gap-2 ms-auto">
+            <a th:href="@{/admin/farms/map}" class="btn btn-secondary">🗺️ 텃밭 지도 확인</a>
+            <a th:href="@{/admin/farms/create}" class="btn btn-success">📝 텃밭 정보 등록</a>
+        </div>
     </div>
-    <table>
-        <thead>
-        <tr>
-            <th>farmId</th>
-            <th>farmImage</th>
-            <th>gardenUniqueId(텃밭 고유번호)</th>
-            <th>farmName(텃밭명)</th>
-            <th>operator(운영주체)</th>
-            <th>lotNumberAddress(주소)</th>
-            <th>updatedAt(최종 수정일)</th>
-        </tr>
-        </thead>
-        <tbody>
-        <th:block th:each="farm : ${farmList}">
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped align-middle text-center">
+            <thead class="table-light">
             <tr>
-                <td>[[${farm.farmId}]]</td>
-                <td>
-                    <img th:src="${farm.farmImageUrl}" width="100" height="100" alt="">
-                </td>
-                <td><a th:href="@{/admin/farms/{farmId}(farmId=${farm.farmId})}">[[${farm.gardenUniqueId}]]</a></td>
-                <td><a th:href="@{/admin/farms/{farmId}(farmId=${farm.farmId})}">[[${farm.farmName}]]</a></td>
-                <td>[[${farm.operator}]]</td>
-                <td>[[${farm.lotNumberAddress}]]</td>
-                <td>[[${farm.updatedAt}]]</td>
+                <th>Farm ID</th>
+                <th>텃밭 사진</th>
+                <th>고유번호</th>
+                <th>텃밭 이름</th>
+                <th>운영주체</th>
+                <th style="width: 30%;">텃밭 주소</th>
+                <th style="width: 15%;">최종 수정일</th>
             </tr>
-        </th:block>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            <th:block th:each="farm : ${farmList}">
+                <tr>
+                    <td>[[${farm.farmId}]]</td>
+                    <td>
+                        <img th:src="${farm.farmImageUrl}" alt="텃밭 사진" class="profile-img">
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/farms/{farmId}(farmId=${farm.farmId})}" class="table-link">[[${farm.gardenUniqueId}]]</a>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/farms/{farmId}(farmId=${farm.farmId})}" class="table-link">[[${farm.farmName}]]</a>
+                    </td>
+                    <td>[[${farm.operator}]]</td>
+                    <td>[[${farm.lotNumberAddress}]]</td>
+                    <td>[[${farm.updatedAt}]]</td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+    </div>
 </div>
 </body>
 </html>

@@ -3,61 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <title>텃밭 상세 정보</title>
+    <link rel="stylesheet" href="/css/detail.css">
     <link rel="stylesheet" href="/css/footer.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
 </head>
 <body th:replace="~{layout::layout}">
-<div th:fragment="content">
-    <h1>텃밭 상세 페이지</h1>
-    <div>
-        <p>텃밭 이미지</p>
-        <img th:src="${farm.farmImageUrl}" width="200" height="200" alt="">
+<div th:fragment="content" class="detail-card">
+    <div class="card shadow">
+        <div class="card-body">
+            <h3 class="card-title mb-4 fw-bold">🌱 텃밭 상세 정보</h3>
+            <div class="row g-3">
+                <div class="col-md-3 text-center">
+                    <img th:src="${farm.farmImageUrl}" class="detail-img mb-2" alt="텃밭 사진">
+                </div>
+                <div class="col-md-9">
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">Farm ID</div>
+                        <div class="value-col">[[${farm.farmId}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">고유번호</div>
+                        <div class="value-col">[[${farm.gardenUniqueId}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">텃밭 이름</div>
+                        <div class="value-col">[[${farm.farmName}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">운영주체</div>
+                        <div class="value-col">[[${farm.operator}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">도로명 주소</div>
+                        <div class="value-col">[[${farm.roadNameAddress}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">지번 주소</div>
+                        <div class="value-col">[[${farm.lotNumberAddress}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">부대시설</div>
+                        <div class="value-col">[[${farm.facilities}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">신청 방법</div>
+                        <div class="value-col">[[${farm.contact}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">위치 (위도 / 경도)</div>
+                        <div class="value-col">[[${farm.latitude}]] / [[${farm.longitude}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">운영 여부</div>
+                        <div class="value-col">
+                            <span th:if="${farm.available}" class="badge bg-success">운영중</span>
+                            <span th:if="${!farm.available}" class="badge bg-secondary">미운영</span>
+                        </div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">등록일</div>
+                        <div class="value-col">[[${farm.createdAt}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">최종 수정일</div>
+                        <div class="value-col">[[${farm.updatedAt}]]</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="d-flex justify-content-center gap-3">
+                    <a th:href="@{/admin/farms}" class="btn btn-outline-secondary">목록</a>
+                    <a th:href="@{/admin/farms/update?farmId={farmId}(farmId=${farm.farmId})}" class="btn btn-primary">수정</a>
+                    <a th:href="@{/admin/farms/delete?farmId={farmId}(farmId=${farm.farmId})}" class="btn btn-danger">삭제</a>
+                </div>
+            </div>
+        </div>
     </div>
-    <table>
-        <thead>
-        <tr>
-            <th>farmId</th>
-            <th>gardenUniqueId(텃밭 고유번호)</th>
-            <th>farmName(텃밭명)</th>
-            <th>operator(운영주체)</th>
-            <th>roadNameAddress(도로명주소)</th>
-            <th>lotNumberAddress(지번주소)</th>
-            <th>facilities(부대시설)</th>
-            <th>contact(신청방법)</th>
-            <th>latitude(위도)</th>
-            <th>longitude(경도)</th>
-            <th>available(운영 여부)</th>
-            <th>createdAt(등록일)</th>
-            <th>updatedAt(최종 수정일)</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td>[[${farm.farmId}]]</td>
-            <td>[[${farm.gardenUniqueId}]]</td>
-            <td>[[${farm.farmName}]]</td>
-            <td>[[${farm.operator}]]</td>
-            <td>[[${farm.roadNameAddress}]]</td>
-            <td>[[${farm.lotNumberAddress}]]</td>
-            <td>[[${farm.facilities}]]</td>
-            <td>[[${farm.contact}]]</td>
-            <td>[[${farm.latitude}]]</td>
-            <td>[[${farm.longitude}]]</td>
-            <td>[[${farm.available}]]</td>
-            <td>[[${farm.createdAt}]]</td>
-            <td>[[${farm.updatedAt}]]</td>
-        </tr>
-        </tbody>
-        <tfoot>
-        <tr>
-            <td colspan="13">
-                <a th:href="@{/admin/farms}">목록</a>
-                <a th:href="@{/admin/farms/update?farmId={farmId}(farmId=${farm.farmId})}">텃밭 정보 수정</a>
-                <a th:href="@{/admin/farms/delete?farmId={farmId}(farmId=${farm.farmId})}">텃밭 정보 삭제</a>
-            </td>
-        </tr>
-        </tfoot>
-    </table>
 </div>
 </body>
 </html>

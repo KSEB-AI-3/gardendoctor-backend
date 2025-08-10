@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class FarmService {
@@ -31,6 +30,7 @@ public class FarmService {
      *
      * @return 각 텃밭 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<FarmResponse> findAllFarms() {
         List<Farm> foundFarms = farmRepository.findAllByOrderByGardenUniqueIdAsc();
         if (foundFarms.isEmpty()) {
@@ -49,6 +49,7 @@ public class FarmService {
      * @param keyword 검색어(텃밭 이름 또는 주소)
      * @return 검색된 텃밭 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<FarmResponse> findFarmsByKeyword(String keyword) {
         List<Farm> foundFarms = farmRepository.findByFarmNameOrAddressContainingOrderByGardenUniqueIdAsc("%"+keyword+"%");
         return foundFarms.stream()
@@ -62,6 +63,7 @@ public class FarmService {
      * @param farmId 조회할 텃밭 정보의 ID
      * @return 해당 텃밭 정보의 Response DTO
      */
+    @Transactional(readOnly = true)
     public FarmResponse findFarm(Long farmId) {
         Farm foundFarm = findFarmById(farmId);
         return toFarmResponseBuilder(foundFarm, true).build();
@@ -76,6 +78,7 @@ public class FarmService {
      * @param radius 조회할 반경(단위: km) - 기본값은 20km
      * @return 지정된 반경 내에 위치한 텃밭의 정보 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<FarmResponse> findFarmsByCurrentLocation (Double latitude, Double longitude, Double radius) {
         log.info("현재 위치: {}, {} / 반경: {}", latitude, longitude, radius);
         List<Farm> foundFarms = farmRepository.findFarmsWithinRadius(
@@ -108,7 +111,7 @@ public class FarmService {
                     .contact(farm.getContact())
                     .latitude(farm.getLatitude())
                     .longitude(farm.getLongitude())
-                    .available(farm.getAvailable())
+                    .available(farm.isAvailable())
                     .createdAt(farm.getCreatedAt());
         }
         return builder;
@@ -137,6 +140,7 @@ public class FarmService {
 
     /**
      * FarmDataInitializer에서 사용
+     * - 텃밭 정보 리스트 저장
      *
      * @param farmList 저장할 초기 텃밭 정보 목록
      */

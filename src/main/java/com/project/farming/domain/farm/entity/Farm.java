@@ -19,21 +19,26 @@ public class Farm {
     private Long farmId;
 
     @Column(unique = true, nullable = false)
-    private Integer gardenUniqueId; // 텃밭 고유번호
+    private int gardenUniqueId; // 텃밭 고유번호
 
     private String operator; // 운영주체
-    private String farmName;
-    private String roadNameAddress; // 도로명주소
-    private String lotNumberAddress; // 지번주소
+    private String farmName; // 텃밭 이름
+    private String roadNameAddress; // 도로명 주소
+
+    @Column(nullable = false)
+    private String lotNumberAddress; // 지번 주소
+
     private String facilities; // 부대시설
-    private String contact; // 신청방법
+    private String contact; // 신청 방법
     private Double latitude; // 위도
     private Double longitude; // 경도
-    private Boolean available;
+
+    @Column(nullable = false)
+    private boolean available; // 운영 여부
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_image_file_id", nullable = false)
-    private ImageFile farmImageFile;
+    private ImageFile farmImageFile; // 텃밭 사진
 
     private LocalDate createdAt;
     private LocalDate updatedAt;

@@ -11,16 +11,16 @@ import java.time.LocalDate;
 @Builder
 public class FarmResponse {
     private Long farmId;
-    private Integer gardenUniqueId; // 텃밭 고유번호
+    private int gardenUniqueId; // 텃밭 고유번호
     private String operator; // 운영주체
     private String farmName;
-    private String roadNameAddress; // 도로명주소
-    private String lotNumberAddress; // 지번주소
+    private String roadNameAddress; // 도로명 주소
+    private String lotNumberAddress; // 지번 주소
     private String facilities; // 부대시설
     private String contact; // 신청방법
     private Double latitude; // 위도
     private Double longitude; // 경도
-    private Boolean available;
+    private boolean available; // 운영 여부
     private LocalDate createdAt;
     private LocalDate updatedAt;
     private String farmImageUrl;

@@ -7,97 +7,72 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
 </head>
 <body th:replace="~{layout::layout}">
-<div th:fragment="content">
-    <h1>텃밭 정보 수정</h1>
-    <form action="#" method="post" th:action="@{/admin/farms/update/{farmId}(farmId=${farm.farmId})}" enctype="multipart/form-data">
-        <table>
-            <tr>
-                <td><label for="id">텃밭 고유번호(필수):</label></td>
-                <td>
-                    <input type="number" id="id" name="gardenUniqueId" th:value="${farm.gardenUniqueId}" required>
-                </td>
-            </tr>
-            <tr>
-                <td><label for="farmName">텃밭명:</label></td>
-                <td>
-                    <input type="text" id="farmName" name="farmName" th:value="${farm.farmName}">
-                </td>
-            </tr>
-            <tr>
-                <td><label for="operator">운영주체:</label></td>
-                <td>
-                    <input type="text" id="operator" name="operator" th:value="${farm.operator}">
-                </td>
-            </tr>
-            <tr>
-                <td><label for="roadName">도로명주소:</label></td>
-                <td>
-                    <input type="text" id="roadName" name="roadNameAddress" th:value="${farm.roadNameAddress}">
-                </td>
-            </tr>
-            <tr>
-                <td><label for="lotNumber">지번주소(필수)(주소 1개만 입력 시 지번주소 또는 도로명주소 입력):</label></td>
-                <td>
-                    <input type="text" id="lotNumber" name="lotNumberAddress" th:value="${farm.lotNumberAddress}" required>
-                </td>
-            </tr>
-            <tr>
-                <td><label for="facilities">부대시설:</label></td>
-                <td>
-                    <input type="text" id="facilities" name="facilities" th:value="${farm.facilities}">
-                </td>
-            </tr>
-            <tr>
-                <td><label for="contact">신청방법:</label></td>
-                <td>
-                    <input type="text" id="contact" name="contact" th:value="${farm.contact}">
-                </td>
-            </tr>
-            <tr>
-                <td><label for="latitude">위도:</label></td>
-                <td>
-                    <input type="number" step="any" min="0" id="latitude" name="latitude" th:value="${farm.latitude}">
-                </td>
-            </tr>
-            <tr>
-                <td><label for="longitude">경도:</label></td>
-                <td>
-                    <input type="number" step="any" min="0" id="longitude" name="longitude" th:value="${farm.longitude}">
-                </td>
-            </tr>
-            <tr>
-                <td><label for="available">운영여부(기존 - [[${farm.available}]]):</label></td>
-                <td>
-                    <input type="checkbox" id="available" name="available" value="true">
-                </td>
-            </tr>
-            <tr>
-                <td>텃밭 이미지:</td>
-                <td>
-                    <img th:src="${farm.farmImageUrl}" width="200" height="200" alt="">
-                </td>
-            </tr>
-            <tr>
-                <td><label for="file">텃밭 이미지 변경:</label></td>
-                <td>
-                    <input type="file" id="file" name="imageFile">
-                </td>
-            </tr>
-            <tr th:if="${param.error}">
-                <td colspan="2" style="color:red;">
+<div th:fragment="content" class="container my-5" style="max-width: 800px;">
+    <div class="card shadow">
+        <div class="card-body m-4">
+            <h2 class="card-title text-center mb-4 fw-bold">🌱 텃밭 정보 수정</h2>
+            <form action="#" method="post" th:action="@{/admin/farms/update/{farmId}(farmId=${farm.farmId})}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="id" class="form-label fw-bold">텃밭 고유번호 <span class="text-danger">(필수)</span></label>
+                    <input type="number" id="id" name="gardenUniqueId" class="form-control" th:value="${farm.gardenUniqueId}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="farmName" class="form-label fw-bold">텃밭 이름</label>
+                    <input type="text" id="farmName" name="farmName" class="form-control" th:value="${farm.farmName}">
+                </div>
+                <div class="mb-3">
+                    <label for="operator" class="form-label fw-bold">운영주체</label>
+                    <input type="text" id="operator" name="operator" class="form-control" th:value="${farm.operator}">
+                </div>
+                <div class="mb-3">
+                    <label for="roadName" class="form-label fw-bold">도로명 주소</label>
+                    <input type="text" id="roadName" name="roadNameAddress" class="form-control" th:value="${farm.roadNameAddress}">
+                </div>
+                <div class="mb-3">
+                    <label for="lotNumber" class="form-label fw-bold">지번 주소(주소 1개만 입력 시 지번 주소 또는 도로명 주소 입력) <span class="text-danger">(필수)</span></label>
+                    <input type="text" id="lotNumber" name="lotNumberAddress" class="form-control" th:value="${farm.lotNumberAddress}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="facilities" class="form-label fw-bold">부대시설</label>
+                    <input type="text" id="facilities" name="facilities" class="form-control" th:value="${farm.facilities}">
+                </div>
+                <div class="mb-3">
+                    <label for="contact" class="form-label fw-bold">신청 방법</label>
+                    <input type="text" id="contact" name="contact" class="form-control" th:value="${farm.contact}">
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="latitude" class="form-label fw-bold">위도</label>
+                        <input type="number" step="any" min="0" id="latitude" name="latitude" class="form-control" th:value="${farm.latitude}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="longitude" class="form-label fw-bold">경도</label>
+                        <input type="number" step="any" min="0" id="longitude" name="longitude" class="form-control" th:value="${farm.longitude}">
+                    </div>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" id="available" name="available" value="true" class="form-check-input">
+                    <label for="available" class="form-check-label fw-bold">운영 여부 (기존 상태: [[${farm.available}]])</label>
+                    <input type="hidden" name="available" value="false">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">기존 텃밭 사진</label><br>
+                    <img th:src="${farm.farmImageUrl}" width="180" height="180" class="img-thumbnail" alt="텃밭 사진">
+                </div>
+                <div class="mb-3">
+                    <label for="file" class="form-label fw-bold">텃밭 사진 변경 (선택)</label>
+                    <input type="file" id="file" name="imageFile" class="form-control">
+                </div>
+                <div th:if="${param.error}" class="alert alert-danger">
                     텃밭 정보 수정에 실패했습니다. 다시 한 번 시도해 주세요.
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <a th:href="@{/admin/farms/{farmId}(farmId=${param.farmId})}">취소</a>
-                </td>
-                <td>
-                    <input type="submit" value="수정">
-                </td>
-            </tr>
-        </table>
-    </form>
+                </div>
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a th:href="@{/admin/farms/{farmId}(farmId=${param.farmId})}" class="btn btn-secondary">취소</a>
+                    <button type="submit" class="btn btn-primary">수정</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 </body>
 </html>

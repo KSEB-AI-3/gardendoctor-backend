@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FarmRepository extends JpaRepository<Farm, Long> {
-    boolean existsByGardenUniqueId(Integer gardenUniqueId);
+    boolean existsByGardenUniqueId(int gardenUniqueId);
     List<Farm> findAllByOrderByGardenUniqueIdAsc();
     List<Farm> findByFarmNameContainingOrderByGardenUniqueIdAsc(String keyword);
 
@@ -41,7 +41,7 @@ public interface FarmRepository extends JpaRepository<Farm, Long> {
             @Param("longitude") Double longitude,
             @Param("radius") Double radius);
 
-    Optional<Farm> findByGardenUniqueId(Integer gardenUniqueId);
+    Optional<Farm> findByGardenUniqueId(int gardenUniqueId);
 
     @Query(value ="SELECT * FROM farm_info WHERE farm_name = :farmName LIMIT 1" , nativeQuery = true)
     Optional<Farm> getOtherFarm(@Param("farmName") String farmName);
