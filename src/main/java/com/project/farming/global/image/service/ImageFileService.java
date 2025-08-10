@@ -12,8 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -201,13 +199,13 @@ public class ImageFileService {
      * @return 저장된 식물 이미지
      */
     @Transactional
-    public ImageFile savePlantImageByUrl(String plantImageUrl, Long plantId) {
+    public ImageFile savePlantImage(String originalImageName, String plantImageUrl, Long plantId) {
         if (plantImageUrl.isBlank()) {
             return getDefaultPlantImage();
         }
         String s3Key = extractS3Key(plantImageUrl);
         ImageFile imageFile = ImageFile.builder()
-                .originalImageName(s3Key.substring(6))
+                .originalImageName(originalImageName)
                 .s3Key(s3Key)
                 .imageUrl(plantImageUrl)
                 .domainType(ImageDomainType.PLANT)
@@ -226,11 +224,9 @@ public class ImageFileService {
     private String extractS3Key(String imageUrl) {
         try {
             URL url = new URL(imageUrl);
-            String path = url.getPath(); // /plant/%EA%B0%80%EC%A7%80.png
-            String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8); // /plant/가지.png
-            return decodedPath.startsWith("/") ? decodedPath.substring(1) : decodedPath; // plant/고추.png
+            return url.getPath().substring(1); // 맨 앞의 '/' 제거
         } catch (Exception e) {
-            throw new RuntimeException("Invalid S3 URL: " + imageUrl, e);
+            throw new IllegalArgumentException("Invalid S3 URL: " + imageUrl, e);
         }
     }
 
