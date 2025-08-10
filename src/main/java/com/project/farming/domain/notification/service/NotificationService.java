@@ -175,25 +175,40 @@ public class NotificationService {
     }
 
     /**
-     * 공지 알림을 각 사용자 별로 저장
+     * NoticeService에서 사용
+     * - 공지사항 알림을 각 사용자 별로 저장
      *
-     * @param notice 저장할 공지 내용
+     * @param title 저장할 공지사항 제목
+     * @param content 저장할 공지사항 내용
      */
     @Transactional
-    public void saveNotice(Notice notice) {
-        List<User> userList = userRepository.findAll();
+    public void saveNotice(String title, String content) {
+        List<User> userList = userRepository.findUsersByFcmToken();
         if (userList.isEmpty()) {
-            throw new UserNotFoundException("사용자가 존재하지 않습니다.");
+            log.error("FCM 토큰이 저장된 사용자가 존재하지 않습니다.");
+            throw new UserNotFoundException("FCM 토큰이 저장된 사용자가 존재하지 않습니다.");
         }
         List<Notification> notifications = userList.stream()
                 .map(user -> Notification.builder()
                         .user(user)
-                        .title(notice.getTitle())
-                        .message(notice.getContent())
+                        .title(title)
+                        .message(content)
                         .isRead(false)
                         .build())
                 .collect(Collectors.toList());
         notificationRepository.saveAll(notifications);
+    }
+
+    /**
+     * NoticeService에서 사용
+     * - 삭제된 공지사항 알림을 notification에서도 삭제
+     *
+     * @param title 삭제할 공지사항 제목
+     * @param content 삭제할 공지사항 내용
+     */
+    @Transactional
+    public void deleteNotice(String title, String content) {
+        notificationRepository.deleteByTitleAndMessage(title, content);
     }
 
     /**

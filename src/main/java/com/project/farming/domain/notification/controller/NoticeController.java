@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Notice Admin API", description = "공지 알림 관련 **관리자 전용** API")
+@Tag(name = "Notice Admin API", description = "공지사항 알림 관련 **관리자 전용** API")
 @RequestMapping("/admin/notices")
 @RequiredArgsConstructor
 @Controller
@@ -23,15 +23,15 @@ public class NoticeController {
     private final NoticeService noticeService;
 
     @GetMapping("/create")
-    @Operation(summary = "새로운 공지 등록 페이지 (관리자 전용)",
-            description = "새로운 공지를 등록하는 페이지 - **관리자만 접근 가능합니다.**")
+    @Operation(summary = "새로운 공지사항 등록 페이지 (관리자 전용)",
+            description = "새로운 공지사항을 등록하는 페이지 - **관리자만 접근 가능합니다.**")
     public String showCreateNoticePage() {
         return "notice/create-notice";
     }
 
     @PostMapping("/createProc")
-    @Operation(summary = "새로운 공지 등록 (관리자 전용)",
-            description = "새로운 공지를 등록합니다. **관리자만 접근 가능합니다.**")
+    @Operation(summary = "새로운 공지사항 등록 (관리자 전용)",
+            description = "새로운 공지사항을 등록합니다. **관리자만 접근 가능합니다.**")
     public String createNotice(@Valid NoticeRequest request) {
         try {
             noticeService.saveNotice(request);
@@ -42,8 +42,8 @@ public class NoticeController {
     }
 
     @GetMapping
-    @Operation(summary = "전체 공지 목록 조회 페이지 (관리자 전용)",
-            description = "DB에 등록된 모든 공지를 ID 순으로 조회합니다. **관리자만 접근 가능합니다.**")
+    @Operation(summary = "전체 공지사항 목록 조회 페이지 (관리자 전용)",
+            description = "DB에 등록된 모든 공지사항을 ID 순으로 조회합니다. **관리자만 접근 가능합니다.**")
     public String showNoticeListPage(Model model) {
         List<NoticeResponse> noticeList = noticeService.findAllNotices();
         model.addAttribute("noticeList", noticeList);
@@ -51,13 +51,13 @@ public class NoticeController {
     }
 
     @GetMapping("/search")
-    @Operation(summary = "공지 목록 검색 (관리자 전용)",
+    @Operation(summary = "공지사항 목록 검색 (관리자 전용)",
             description = """
-                    입력한 키워드(제목, 내용)를 포함하는 모든 공지를 ID 순으로 조회합니다.
+                    입력한 키워드(제목(title), 내용(content))를 포함하는 모든 공지사항을 ID 순으로 조회합니다.
                     **관리자만 접근 가능합니다.**
                     """)
     public String showSearchNoticeListPage(
-            @Parameter(description = "검색 조건: 제목(title) 또는 내용(content)")
+            @Parameter(description = "검색 조건: 공지사항 제목(title) 또는 내용(content)")
             @RequestParam(defaultValue = "title") String searchType,
             @RequestParam String keyword, Model model) {
         List<NoticeResponse> noticeList = noticeService.findNoticesByKeyword(searchType, keyword);
@@ -66,8 +66,8 @@ public class NoticeController {
     }
 
     @GetMapping("/{noticeId}")
-    @Operation(summary = "특정 공지 조회 페이지 (관리자 전용)",
-            description = "공지 ID에 해당하는 공지를 조회합니다. **관리자만 접근 가능합니다.**")
+    @Operation(summary = "특정 공지사항 조회 페이지 (관리자 전용)",
+            description = "공지사항 ID에 해당하는 공지사항을 조회합니다. **관리자만 접근 가능합니다.**")
     public String showNoticePage(@PathVariable Long noticeId, Model model) {
         NoticeResponse notice = noticeService.findNotice(noticeId);
         model.addAttribute("notice", notice);
@@ -75,8 +75,8 @@ public class NoticeController {
     }
 
     @GetMapping("/update")
-    @Operation(summary = "특정 공지 수정 페이지 (관리자 전용)",
-            description = "공지 ID에 해당하는 공지를 수정하는 페이지 - **관리자만 접근 가능합니다.**")
+    @Operation(summary = "특정 공지사항 수정 페이지 (관리자 전용)",
+            description = "공지사항 ID에 해당하는 공지사항을 수정하는 페이지 - **관리자만 접근 가능합니다.**")
     public String showUpdateNoticePage(@RequestParam Long noticeId, Model model) {
         NoticeResponse notice = noticeService.findNotice(noticeId); // 기존 내용 불러오기
         model.addAttribute("notice", notice);
@@ -84,8 +84,8 @@ public class NoticeController {
     }
 
     @PostMapping("/update/{noticeId}")
-    @Operation(summary = "특정 공지 수정 (관리자 전용)",
-            description = "공지 ID에 해당하는 공지를 수정합니다. **관리자만 접근 가능합니다.**")
+    @Operation(summary = "특정 공지사항 수정 (관리자 전용)",
+            description = "공지사항 ID에 해당하는 공지사항을 수정합니다. **관리자만 접근 가능합니다.**")
     public String updateNotice(@PathVariable Long noticeId, @Valid NoticeRequest request) {
         try {
             noticeService.updateNotice(noticeId, request);
@@ -96,15 +96,15 @@ public class NoticeController {
     }
 
     @GetMapping("/delete")
-    @Operation(summary = "특정 공지 삭제 페이지 (관리자 전용)",
-            description = "공지 ID에 해당하는 공지를 삭제하는 페이지 - **관리자만 접근 가능합니다.**")
+    @Operation(summary = "특정 공지사항 삭제 페이지 (관리자 전용)",
+            description = "공지사항 ID에 해당하는 공지사항을 삭제하는 페이지 - **관리자만 접근 가능합니다.**")
     public String showDeleteNoticePage() {
         return "notice/delete-notice";
     }
 
     @GetMapping("/delete/{noticeId}")
-    @Operation(summary = "특정 공지 삭제 (관리자 전용)",
-            description = "공지 ID에 해당하는 공지를 삭제합니다. **관리자만 접근 가능합니다.**")
+    @Operation(summary = "특정 공지사항 삭제 (관리자 전용)",
+            description = "공지사항 ID에 해당하는 공지사항을 삭제합니다. **관리자만 접근 가능합니다.**")
     public String deleteNotice(@PathVariable Long noticeId) {
         try {
             noticeService.deleteNotice(noticeId);
@@ -115,8 +115,8 @@ public class NoticeController {
     }
 
     @GetMapping("/send/{noticeId}")
-    @Operation(summary = "특정 공지 알림 즉시 전송 (관리자 전용)",
-            description = "공지 ID에 해당하는 공지 알림을 즉시 전송합니다. **관리자만 접근 가능합니다.**")
+    @Operation(summary = "특정 공지사항 알림 즉시 전송 (관리자 전용)",
+            description = "공지사항 ID에 해당하는 공지사항 알림을 즉시 전송합니다. **관리자만 접근 가능합니다.**")
     public String sendNotice(@PathVariable Long noticeId) {
         try {
             noticeService.sendNotice(noticeId);

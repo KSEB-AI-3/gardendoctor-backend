@@ -2,52 +2,66 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>공지 내용</title>
+    <title>공지사항 상세 내용</title>
+    <link rel="stylesheet" href="/css/detail.css">
     <link rel="stylesheet" href="/css/footer.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
 </head>
 <body th:replace="~{layout::layout}">
-<div th:fragment="content">
-    <h1>공지 페이지</h1>
-    <table>
-        <thead>
-        <tr>
-            <th>noticeId</th>
-            <th>title</th>
-            <th>content</th>
-            <th>isSent</th>
-            <th>sentAt</th>
-            <th>createdAt</th>
-            <th>updatedAt</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td>[[${notice.noticeId}]]</td>
-            <td>[[${notice.title}]]</td>
-            <td>[[${notice.content}]]</td>
-            <td>[[${notice.isSent}]]</td>
-            <td>[[${notice.sentAt}]]</td>
-            <td>[[${notice.createdAt}]]</td>
-            <td>[[${notice.updatedAt}]]</td>
-        </tr>
-        </tbody>
-        <tfoot>
-        <tr th:if="${param.send_error}">
-            <td colspan="7" style="color:red;">
-                공지 알림 전송에 실패했습니다. 다시 한 번 시도해 주세요.
-            </td>
-        </tr>
-        <tr>
-            <td colspan="7">
-                <a th:href="@{/admin/notices}">목록</a>
-                <a th:href="@{/admin/notices/update?noticeId={noticeId}(noticeId=${notice.noticeId})}">공지 내용 수정</a>
-                <a th:href="@{/admin/notices/delete?noticeId={noticeId}(noticeId=${notice.noticeId})}">공지 삭제</a>
-                <a th:href="@{/admin/notices/send/{noticeId}(noticeId=${notice.noticeId})}">공지 알림 전송</a>
-            </td>
-        </tr>
-        </tfoot>
-    </table>
+<div th:fragment="content" class="detail-card">
+    <div class="card shadow">
+        <div class="card-body">
+            <h3 class="card-title mb-4 fw-bold">📢 공지사항 상세 내용</h3>
+            <div class="row g-3">
+                <div class="col-md-9">
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">Notice ID</div>
+                        <div class="value-col">[[${notice.noticeId}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">공지사항 제목</div>
+                        <div class="value-col">[[${notice.title}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">공지사항 내용</div>
+                        <div class="value-col">[[${notice.content}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">발송 여부</div>
+                        <div class="value-col">
+                            <span th:if="${notice.isSent}" class="badge bg-success">발송됨</span>
+                            <span th:if="${!notice.isSent}" class="badge bg-secondary">미발송</span>
+                        </div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">발송 시간</div>
+                        <div class="value-col">[[${notice.sentAt} ?: '없음']]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">생성일</div>
+                        <div class="value-col">[[${notice.createdAt}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <div class="label-col">최종 수정일</div>
+                        <div class="value-col">[[${notice.updatedAt}]]</div>
+                    </div>
+                    <div class="mb-3 d-flex">
+                        <a th:href="@{/admin/notices/send/{noticeId}(noticeId=${notice.noticeId})}" class="btn btn-warning">알림 전송</a>
+                    </div>
+                    <div th:if="${param.send_error}" class="alert alert-danger">
+                        공지사항 알림 전송에 실패했습니다. 다시 한 번 시도해 주세요.
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="d-flex justify-content-center gap-3">
+                    <a th:href="@{/admin/notices}" class="btn btn-outline-secondary">목록</a>
+                    <a th:href="@{/admin/notices/update?noticeId={noticeId}(noticeId=${notice.noticeId})}" class="btn btn-primary">수정</a>
+                    <a th:href="@{/admin/notices/delete?noticeId={noticeId}(noticeId=${notice.noticeId})}" class="btn btn-danger">삭제</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>

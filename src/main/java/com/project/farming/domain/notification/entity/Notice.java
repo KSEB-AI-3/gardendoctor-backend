@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notice")
+@Table(name = "notices")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -18,15 +18,15 @@ public class Notice {
     private Long noticeId;
 
     @Column(nullable = false)
-    private String title;
+    private String title; // 공지사항 제목
 
     @Column(nullable = false)
-    private String content;
+    private String content; // 공지사항 내용
 
     @Column(nullable = false)
-    private boolean isSent = false;
+    private boolean isSent; // 알림 발송 여부
 
-    private LocalDateTime sentAt; // 마지막 전송 시간
+    private LocalDateTime sentAt; // 마지막 알림 발송 시간
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -40,9 +40,11 @@ public class Notice {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateNotice(String title, String content) {
+    public void updateNotice(
+            String title, String content, LocalDateTime sentAt) {
         this.title = title;
         this.content = content;
+        this.sentAt = sentAt;
     }
 
     public void markAsSent() {

@@ -2,49 +2,38 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>공지 수정</title>
+    <title>공지사항 수정</title>
     <link rel="stylesheet" href="/css/footer.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
 </head>
 <body th:replace="~{layout::layout}">
-<div th:fragment="content">
-    <h1>공지 수정</h1>
-    <form action="#" method="post" th:action="@{/admin/notices/update/{noticeId}(noticeId=${notice.noticeId})}">
-        <table>
-            <tr>
-                <td><label for="title">공지 제목(필수):</label></td>
-                <td>
-                    <input type="text" id="title" name="title" th:value="${notice.title}" required>
-                </td>
-            </tr>
-            <tr>
-                <td><label for="content">공지 내용(필수):</label></td>
-                <td>
-                    <input type="text" id="content" name="content" th:value="${notice.content}" required>
-                </td>
-            </tr>
-            <tr>
-                <td><label for="sentAt">알림 전송 시간:</label></td>
-                <td>
-                    <input type="datetime-local" id="sentAt" name="sentAt"
-                           th:value="${notice.sentAt != null ? #temporals.format(notice.sentAt, 'yyyy-MM-dd\'T\'HH:mm')}">
-                </td>
-            </tr>
-            <tr th:if="${param.error}">
-                <td colspan="2" style="color:red;">
-                    공지 수정에 실패했습니다. 다시 한 번 시도해 주세요.
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <a th:href="@{/admin/notices/{noticeId}(noticeId=${param.noticeId})}">취소</a>
-                </td>
-                <td>
-                    <input type="submit" value="등록">
-                </td>
-            </tr>
-        </table>
-    </form>
+<div th:fragment="content" class="container my-5" style="max-width: 800px;">
+    <div class="card shadow">
+        <div class="card-body m-4">
+            <h2 class="card-title text-center mb-4 fw-bold">📢 공지사항 수정</h2>
+            <form action="#" method="post" th:action="@{/admin/notices/update/{noticeId}(noticeId=${notice.noticeId})}">
+                <div class="mb-3">
+                    <label for="title" class="form-label fw-bold">공지사항 제목 <span class="text-danger">(필수)</span></label>
+                    <input type="text" id="title" name="title" class="form-control" th:value="${notice.title}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="content" class="form-label fw-bold">공지사항 내용 <span class="text-danger">(필수)</span></label>
+                    <input type="text" id="content" name="content" class="form-control" th:value="${notice.content}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="sentAt" class="form-label fw-bold">알림 발송 시간(기존: [[${notice.sentAt != null ? #temporals.format(notice.sentAt, 'yyyy-MM-dd''T''HH:mm') : '없음'}]])</label>
+                    <input type="datetime-local" id="sentAt" name="sentAt" class="form-control">
+                </div>
+                <div th:if="${param.error}" class="alert alert-danger">
+                    공지사항 수정에 실패했습니다. 다시 한 번 시도해 주세요.
+                </div>
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a th:href="@{/admin/notices/{noticeId}(noticeId=${param.noticeId})}" class="btn btn-secondary">취소</a>
+                    <button type="submit" class="btn btn-primary">수정</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 </body>
 </html>

@@ -2,64 +2,68 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>공지 목록 조회</title>
+    <title>공지사항 목록 조회</title>
+    <link rel="stylesheet" href="/css/list.css">
     <link rel="stylesheet" href="/css/footer.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
-    <style>
-        .ellipsis {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          width: 300px;
-        }
-    </style>
 </head>
 <body th:replace="~{layout::layout}">
-<div th:fragment="content">
-    <h1>공지 목록</h1>
-    <!-- 공지 제목 또는 내용으로 검색   -->
-    <form method="get" th:action="@{/admin/notices/search}">
-        <table>
-            <tr>
-                <td><select name="searchType">
-                    <option value="title">title</option>
-                    <option value="content">content</option>
-                </select></td>
-                <td><input type="text" name="keyword"></td>
-                <td><input type="submit" value="search"></td>
-            </tr>
-        </table>
-    </form>
+<div th:fragment="content" class="container">
+    <h2 class="mb-4" style="font-weight: bold;">📢 공지사항 목록</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <form method="get" th:action="@{/admin/notices/search}" class="d-flex align-items-center gap-2 me-auto">
+            <div class="col-auto">
+                <select name="searchType" class="form-select">
+                    <option value="title">제목</option>
+                    <option value="content">내용</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <input type="text" name="keyword" class="form-control" placeholder="검색어 입력">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">검색</button>
+            </div>
+        </form>
 
-    <div>
-        <a th:href="@{/admin/notices/create}">공지 등록</a>
+        <a th:href="@{/admin/notices/create}" class="btn btn-warning ms-auto">📝 공지사항 등록</a>
     </div>
-    <table>
-        <thead>
-        <tr>
-            <th>noticeId</th>
-            <th>title</th>
-            <th>content</th>
-            <th>isSent</th>
-            <th>sentAt</th>
-            <th>createdAt</th>
-            <th>updatedAt</th>
-        </tr>
-        </thead>
-        <tbody>
-        <th:block th:each="notice : ${noticeList}">
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped align-middle text-center">
+            <thead class="table-light">
             <tr>
-                <td>[[${notice.noticeId}]]</td>
-                <td><a th:href="@{/admin/notices/{noticeId}(noticeId=${notice.noticeId})}">[[${notice.title}]]</a></td>
-                <td class="ellipsis"><a th:href="@{/admin/notices/{noticeId}(noticeId=${notice.noticeId})}">[[${notice.content}]]</a></td>
-                <td>[[${notice.isSent}]]</td>
-                <td>[[${notice.sentAt}]]</td>
-                <td>[[${notice.createdAt}]]</td>
-                <td>[[${notice.updatedAt}]]</td>
+                <th>Notice ID</th>
+                <th>공지사항 제목</th>
+                <th>공지사항 내용</th>
+                <th>발송 여부</th>
+                <th>발송 시간</th>
+                <th>생성일</th>
+                <th>최종 수정일</th>
             </tr>
-        </th:block>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            <th:block th:each="notice : ${noticeList}">
+                <tr>
+                    <td>[[${notice.noticeId}]]</td>
+                    <td class="text-truncate" style="max-width: 200px;">
+                        <a th:href="@{/admin/notices/{noticeId}(noticeId=${notice.noticeId})}" class="table-link">[[${notice.title}]]</a>
+                    </td>
+                    <td class="text-truncate" style="max-width: 200px;">
+                        <a th:href="@{/admin/notices/{noticeId}(noticeId=${notice.noticeId})}" class="table-link">[[${notice.content}]]</a>
+                    </td>
+                    <td>
+                        <span th:if="${notice.isSent}" class="badge bg-success">발송됨</span>
+                        <span th:if="${!notice.isSent}" class="badge bg-secondary">미발송</span>
+                    </td>
+                    <td th:text="${notice.sentAt != null ? #temporals.format(notice.sentAt, 'yyyy-MM-dd HH:mm:ss') : '없음'}"></td>
+                    <td>[[${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm:ss')}]]</td>
+                    <td>[[${#temporals.format(notice.updatedAt, 'yyyy-MM-dd HH:mm:ss')}]]</td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+    </div>
 </div>
 </body>
 </html>

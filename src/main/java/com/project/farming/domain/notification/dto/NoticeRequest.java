@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 @Setter
 public class NoticeRequest {
 
-    @NotBlank(message = "알림 제목을 입력해주세요.")
+    @NotBlank(message = "공지사항 제목을 입력해주세요.")
     private String title;
 
-    @NotBlank(message = "알림 내용을 입력해주세요.")
+    @NotBlank(message = "공지사항 내용을 입력해주세요.")
     private String content;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    private LocalDateTime sentAt; // 전송 시간
+    private LocalDateTime sentAt; // 알림 발송 시간
 }

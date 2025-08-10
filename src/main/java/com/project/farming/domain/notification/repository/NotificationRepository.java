@@ -28,4 +28,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Transactional
     @Query("DELETE FROM Notification n WHERE n.user.userId = :userId") // JPQL 쿼리도 User 엔티티의 필드 이름을 'userId'로 변경
     void deleteByUserId(@Param("userId") Long userId);
+
+    void deleteByTitleAndMessage(String title, String message);
 }
