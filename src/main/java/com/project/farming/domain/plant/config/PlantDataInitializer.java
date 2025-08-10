@@ -61,8 +61,10 @@ public class PlantDataInitializer implements CommandLineRunner {
             String plantEnglishName = getCellValue(row.getCell(1));
             String species = getCellValue(row.getCell(2));
             String season = getCellValue(row.getCell(3));
+            String originalImageName = getCellValue(row.getCell(4));
+            String plantImageUrl = getCellValue(row.getCell(5));
             ImageFile plantImage = imageFileService
-                    .savePlantImageByUrl(getCellValue(row.getCell(4)), plantId++);
+                    .savePlantImage(originalImageName, plantImageUrl, plantId++);
 
             plantList.add(Plant.builder()
                     .plantName(plantName)

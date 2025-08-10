@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class PlantAdminService {
@@ -65,6 +64,7 @@ public class PlantAdminService {
      *
      * @return 각 식물 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<PlantResponse> findAllPlants() {
         List<Plant> foundPlants = plantRepository.findAllByOrderByPlantIdAsc();
         if (foundPlants.isEmpty()) {
@@ -82,6 +82,7 @@ public class PlantAdminService {
      * @param keyword 검색어(식물 이름)
      * @return 검색된 식물 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<PlantResponse> findPlantsByKeyword(String keyword) {
         List<Plant> foundPlants = plantRepository.findByPlantNameContainingOrderByPlantIdAsc("%"+keyword+"%");
         return foundPlants.stream()

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class PlantService {
@@ -25,6 +24,7 @@ public class PlantService {
      *
      * @return 각 식물 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<PlantResponse> findAllPlants() {
         List<Plant> foundPlants = plantRepository.findAllByOrderByPlantNameAsc();
         if (foundPlants.isEmpty()) {
@@ -42,6 +42,7 @@ public class PlantService {
      * @param keyword 검색어(식물 이름)
      * @return 검색된 식물 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<PlantResponse> findPlantsByKeyword(String keyword) {
         List<Plant> foundPlants = plantRepository.findByPlantNameContainingOrderByPlantNameAsc("%"+keyword+"%");
         return foundPlants.stream()
@@ -55,6 +56,7 @@ public class PlantService {
      * @param plantId 조회할 식물 정보의 ID
      * @return 해당 식물 정보의 Response DTO
      */
+    @Transactional(readOnly = true)
     public PlantResponse findPlant(Long plantId) {
         Plant foundPlant = findPlantById(plantId);
         return toPlantResponseBuilder(foundPlant).build();
