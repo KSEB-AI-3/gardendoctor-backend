@@ -2,6 +2,7 @@ package com.project.farming.domain.user.repository;
 
 import com.project.farming.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,4 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllByOrderByUserIdAsc();
     List<User> findByNicknameContainingOrderByNicknameAsc(String keyword);
     List<User> findByEmailContainingOrderByEmailAsc(String keyword);
+
+    @Query("SELECT u FROM User u WHERE u.fcmToken IS NOT NULL AND TRIM(u.fcmToken) <> ''")
+    List<User> findUsersByFcmToken();
 }
