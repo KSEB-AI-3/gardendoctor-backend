@@ -65,7 +65,7 @@ public class UserPlant {
     private boolean watered; // 물 주기 여부
 
     @Column(nullable = false)
-    private int pruneIntervalDay; // 가지치기 주기(일 단위)
+    private int pruneIntervalDays; // 가지치기 주기(일 단위)
 
     private LocalDate lastPrunedDate; // 마지막 가지치기 날짜
 
@@ -113,12 +113,6 @@ public class UserPlant {
         this.plantingPlace = plantingPlace;
     }
 
-    public void updateUserPlantStatus(boolean watered, boolean pruned, boolean fertilized) {
-        this.watered = watered;
-        this.pruned = pruned;
-        this.fertilized = fertilized;
-    }
-
     public void updateIsNotificationEnabled(boolean isNotificationEnabled) {
         this.isNotificationEnabled = isNotificationEnabled;
     }
@@ -126,8 +120,14 @@ public class UserPlant {
     public void updateUserPlantIntervalDays(
             int waterIntervalDays, int pruneIntervalDays, int fertilizeIntervalDays) {
         this.waterIntervalDays = waterIntervalDays;
-        this.pruneIntervalDay = pruneIntervalDays;
+        this.pruneIntervalDays = pruneIntervalDays;
         this.fertilizeIntervalDays = fertilizeIntervalDays;
+    }
+
+    public void updateUserPlantStatus(boolean watered, boolean pruned, boolean fertilized) {
+        this.watered = watered;
+        this.pruned = pruned;
+        this.fertilized = fertilized;
     }
 
     public void updateLastWateredDate(LocalDate lastWateredDate) {

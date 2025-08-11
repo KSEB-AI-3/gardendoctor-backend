@@ -33,7 +33,7 @@ public class UserPlantRequest {
     private Integer waterIntervalDays;
 
     @NotNull(message = "가지치기 주기(일 단위)를 입력해주세요.")
-    private Integer pruneIntervalDay;
+    private Integer pruneIntervalDays;
 
     @NotNull(message = "영양제 주는 주기(일 단위)를 입력해주세요.")
     private Integer fertilizeIntervalDays;

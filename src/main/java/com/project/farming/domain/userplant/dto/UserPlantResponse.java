@@ -19,7 +19,7 @@ public class UserPlantResponse {
 
     private boolean isNotificationEnabled; // 알림 수신 여부
     private int waterIntervalDays; // 물 주는 주기(일 단위)
-    private int pruneIntervalDay; // 가지치기 주기(일 단위)
+    private int pruneIntervalDays; // 가지치기 주기(일 단위)
     private int fertilizeIntervalDays; // 영양제 주는 주기(일 단위)
     private boolean watered; // 물 주기 여부
     private boolean pruned; // 가지치기 여부

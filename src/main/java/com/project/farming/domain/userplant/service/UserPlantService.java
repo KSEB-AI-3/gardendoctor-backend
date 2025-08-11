@@ -70,7 +70,7 @@ public class UserPlantService {
                 .isNotificationEnabled(request.getIsNotificationEnabled())
                 .waterIntervalDays(request.getWaterIntervalDays())
                 .watered(request.getWatered())
-                .pruneIntervalDay(request.getPruneIntervalDay())
+                .pruneIntervalDays(request.getPruneIntervalDays())
                 .pruned(request.getPruned())
                 .fertilizeIntervalDays(request.getFertilizeIntervalDays())
                 .fertilized(request.getFertilized())
@@ -172,7 +172,7 @@ public class UserPlantService {
         userPlant.updateUserPlantInfo(request.getPlantNickname(), request.getNotes());
         userPlant.updateIsNotificationEnabled(request.getIsNotificationEnabled());
         userPlant.updateUserPlantIntervalDays(
-                request.getWaterIntervalDays(), request.getPruneIntervalDay(), request.getFertilizeIntervalDays());
+                request.getWaterIntervalDays(), request.getPruneIntervalDays(), request.getFertilizeIntervalDays());
         userPlant.updateUserPlantStatus(request.getWatered(), request.getPruned(), request.getFertilized());
         UserPlant updatedUserPlant = userPlantRepository.save(userPlant);
         return toUserPlantResponseBuilder(updatedUserPlant, true, false).build();
@@ -217,7 +217,7 @@ public class UserPlantService {
                     .isNotificationEnabled(userPlant.isNotificationEnabled())
                     .waterIntervalDays(userPlant.getWaterIntervalDays())
                     .watered(userPlant.isWatered())
-                    .pruneIntervalDay(userPlant.getPruneIntervalDay())
+                    .pruneIntervalDays(userPlant.getPruneIntervalDays())
                     .pruned(userPlant.isPruned())
                     .fertilizeIntervalDays(userPlant.getFertilizeIntervalDays())
                     .fertilized(userPlant.isFertilized());
