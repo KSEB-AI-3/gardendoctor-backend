@@ -33,7 +33,7 @@ public class ChatService {
      *
      * @param user      인증된 사용자 또는 null
      * @param question  클라이언트에서 받은 질문
-     * @param chatId 세션 id
+     * @param chatId    세션 id 조회용 PK
      * @return 에이전트가 생성한 답변
      */
     @Transactional
@@ -52,7 +52,6 @@ public class ChatService {
             // FastAPI에 보낼 pythonSessionId를 DB에서 조회
             pythonSessionId = existingChat.getPythonSessionId();
         }
-        // --- 요청 처리: 클라이언트가 보낸 chatId가 null인 경우(첫 채팅), pythonSessionId는 그대로 null ---
 
         // FastAPI 서버에 요청 (pythonSessionId가 null이면 FastAPI가 새 세션을 만듦)
         PythonChatDto.PythonChatRequest request = new PythonChatDto.PythonChatRequest(pythonSessionId, question);

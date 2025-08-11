@@ -113,6 +113,19 @@ public class AuthService {
             throw new UserNotFoundException("로그아웃하려는 사용자를 찾을 수 없습니다.");
         });
     }
+    /**
+     * ✅ 사용자의 FCM 토큰을 업데이트하는 서비스 메서드 추가
+     * @param userId 사용자 ID
+     * @param fcmToken 새로운 FCM 토큰
+     */
+    @Transactional
+    public void updateFcmToken(Long userId, String fcmToken) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("FCM 토큰을 업데이트할 사용자를 찾을 수 없습니다."));
+
+        user.updateFcmToken(fcmToken);
+        log.info("사용자 ID {}의 FCM 토큰이 업데이트되었습니다.", userId);
+    }
 
     @Transactional
     public JwtToken refreshTokens(String refreshTokenString) {

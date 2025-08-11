@@ -82,6 +82,28 @@ public class AuthController {
         return ResponseEntity.ok(tokens);
     }
 
+    /**
+     * ✅ FCM 토큰 갱신 API 추가
+     */
+    @Operation(summary = "FCM 토큰 갱신", description = "로그인된 사용자의 FCM 기기 토큰을 갱신합니다. 앱 시작 시 또는 토큰 갱신 시 호출해야 합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "FCM 토큰 갱신 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+    })
+    @SecurityRequirement(name = "jwtAuth")
+    @PatchMapping("/fcm-token")
+    public ResponseEntity<AuthResponseDto> updateFcmToken(
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Valid @RequestBody FcmTokenUpdateRequestDto requestDto) {
+
+        Long userId = customUserDetails.getUser().getUserId();
+        authService.updateFcmToken(userId, requestDto.getFcmToken());
+
+        return ResponseEntity.ok(AuthResponseDto.builder().message("FCM 토큰이 성공적으로 갱신되었습니다.").build());
+    }
+
+
     @Operation(summary = "로그아웃", description = "현재 사용자의 Access Token을 블랙리스트에 추가하고 Refresh Token을 삭제합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "로그아웃 성공",
