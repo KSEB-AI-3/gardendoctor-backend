@@ -17,7 +17,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @Tag(name = "Chat API", description = "작물 챗봇 질문 및 답변 API")
 @RestController
@@ -45,7 +44,7 @@ public class ChatController {
         return ResponseEntity.ok(responseDto);
     }
 
-    @Operation(summary = "챗봇 세션 메시지 조회", description = "FastAPI에서 특정 세션의 모든 메시지 중 챗봇 답변(assistant)만 조회합니다.")
+    @Operation(summary = "특정 대화의 답변만 조회", description = "FastAPI에서 특정 세션의 모든 메시지 중 챗봇 답변(assistant)만 조회합니다.")
     @GetMapping("/history/messages")
     public ResponseEntity<List<PythonChatDto.PythonChatMessage>> getChatSessionMessages(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -64,8 +63,28 @@ public class ChatController {
 
         return ResponseEntity.ok(sessionMessages);
     }
+    // ✨ [수정된 부분]
+    @Operation(summary = "특정 채팅방의 전체 응답 내용 조회", description = "특정 채팅방의 전체 응답 내용 조회 (user, assistant)을 모두 조회합니다.")
+    @GetMapping("/history/messages/all")
+    public ResponseEntity<List<PythonChatDto.PythonChatMessage>> getChatSessionMessagesAll(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam("chatId") Long chatId) {
 
-    @Operation(summary = "챗봇 대화방 목록 조회", description = "사용자의 모든 챗봇 대화방(세션) 목록을 조회합니다. Spring의 chatId와 Python의 sessionId를 함께 반환합니다.")
+        Long userId = userDetails.getUser().getUserId();
+
+        chatService.validateChatHistoryOwnership(userId, chatId);
+
+        Long pythonSessionId = chatRepository.findById(chatId)
+                .map(Chat::getPythonSessionId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 정보를 찾을 수 없습니다."));
+
+        // 새로 추가한 전체 메시지 조회 메소드 호출
+        List<PythonChatDto.PythonChatMessage> sessionMessages = chatService.getAllSessionMessagesFromPython(pythonSessionId);
+
+        return ResponseEntity.ok(sessionMessages);
+    }
+
+    @Operation(summary = "최신 챗봇 대화방 목록 조회", description = "사용자의 최신 대화 목록을 조회합니다. Spring의 chatId와 Python의 sessionId를 함께 반환합니다.")
     @GetMapping("/sessions")
     public ResponseEntity<List<ChatRoomDto>> getChatRoomList(
             @AuthenticationPrincipal CustomUserDetails userDetails) {

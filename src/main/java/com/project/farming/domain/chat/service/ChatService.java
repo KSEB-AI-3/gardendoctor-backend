@@ -108,6 +108,28 @@ public class ChatService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * ✨ [새로 추가된 메소드]
+     * Python 서버에서 특정 세션의 모든 메시지 (user, assistant)를 가져옵니다.
+     * @param pythonSessionId Python 세션 ID
+     * @return 전체 대화 메시지 리스트
+     */
+    public List<PythonChatDto.PythonChatMessage> getAllSessionMessagesFromPython(Long pythonSessionId) {
+        PythonChatDto.PythonChatResponse response = pythonWebClient.get()
+                .uri("/api/chat/sessions/{id}", pythonSessionId)
+                .retrieve()
+                .bodyToMono(PythonChatDto.PythonChatResponse.class)
+                .block();
+
+        if (response == null || response.getMessages() == null) {
+            return List.of();
+        }
+
+        // 필터링 로직을 제거하여 모든 메시지를 반환
+        return response.getMessages();
+    }
+
+
     private List<PythonSessionDto> getSessionListFromPython() {
         return pythonWebClient.get()
                 .uri("/api/chat/sessions")
