@@ -26,6 +26,18 @@ public class UserPlantRequest {
     private LocalDateTime plantedDate;
     private String notes;
 
+    @NotNull(message = "알림 수신 여부를 입력해주세요.")
+    private Boolean isNotificationEnabled;
+    
+    @NotNull(message = "물 주는 주기(일 단위)를 입력해주세요.")
+    private Integer waterIntervalDays;
+
+    @NotNull(message = "가지치기 주기(일 단위)를 입력해주세요.")
+    private Integer pruneIntervalDay;
+
+    @NotNull(message = "영양제 주는 주기(일 단위)를 입력해주세요.")
+    private Integer fertilizeIntervalDays;
+
     @NotNull(message = "물 주기 여부를 입력해주세요.")
     private Boolean watered;
 

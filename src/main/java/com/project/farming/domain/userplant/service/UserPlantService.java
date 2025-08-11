@@ -67,8 +67,12 @@ public class UserPlantService {
                 .plantingPlace(plantingPlace)
                 .plantedDate(request.getPlantedDate())
                 .notes(request.getNotes())
+                .isNotificationEnabled(request.getIsNotificationEnabled())
+                .waterIntervalDays(request.getWaterIntervalDays())
                 .watered(request.getWatered())
+                .pruneIntervalDay(request.getPruneIntervalDay())
                 .pruned(request.getPruned())
+                .fertilizeIntervalDays(request.getFertilizeIntervalDays())
                 .fertilized(request.getFertilized())
                 .userPlantImageFile(defaultImageFile)
                 .build();
@@ -166,6 +170,9 @@ public class UserPlantService {
         String plantingPlace = getPlantingPlace(farm.getFarmName(), farm.getLotNumberAddress(), request.getPlantingPlace());
         userPlant.updatePlantingPlace(farm, plantingPlace);
         userPlant.updateUserPlantInfo(request.getPlantNickname(), request.getNotes());
+        userPlant.updateIsNotificationEnabled(request.getIsNotificationEnabled());
+        userPlant.updateUserPlantIntervalDays(
+                request.getWaterIntervalDays(), request.getPruneIntervalDay(), request.getFertilizeIntervalDays());
         userPlant.updateUserPlantStatus(request.getWatered(), request.getPruned(), request.getFertilized());
         UserPlant updatedUserPlant = userPlantRepository.save(userPlant);
         return toUserPlantResponseBuilder(updatedUserPlant, true, false).build();
@@ -207,8 +214,12 @@ public class UserPlantService {
         if (includeDetails) {
             builder.plantedDate(userPlant.getPlantedDate())
                     .notes(userPlant.getNotes())
+                    .isNotificationEnabled(userPlant.isNotificationEnabled())
+                    .waterIntervalDays(userPlant.getWaterIntervalDays())
                     .watered(userPlant.isWatered())
+                    .pruneIntervalDay(userPlant.getPruneIntervalDay())
                     .pruned(userPlant.isPruned())
+                    .fertilizeIntervalDays(userPlant.getFertilizeIntervalDays())
                     .fertilized(userPlant.isFertilized());
         }
         if (includePlantDetails) {

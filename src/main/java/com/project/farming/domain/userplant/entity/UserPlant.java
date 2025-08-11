@@ -8,6 +8,7 @@ import com.project.farming.global.image.entity.ImageFile;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class UserPlant {
     @JoinColumn(name = "plant_id", nullable = false)
     private Plant plant; // 등록된 식물
 
-    private String plantName; // 식물 이름(등록된 식물, 직접 입력)
+    private String plantName; // 식물 종류(등록된 식물, 직접 입력)
 
     @Column(nullable = false, length = 20)
     private String plantNickname;
@@ -51,11 +52,30 @@ public class UserPlant {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    // 알림 관련
+    @Column(nullable = false)
+    private boolean isNotificationEnabled; // 알림 수신 여부
+
+    @Column(nullable = false)
+    private int waterIntervalDays; // 물 주는 주기(일 단위)
+    
+    private LocalDate lastWateredDate; // 마지막 물 준 날짜
+    
     @Column(nullable = false)
     private boolean watered; // 물 주기 여부
 
     @Column(nullable = false)
+    private int pruneIntervalDay; // 가지치기 주기(일 단위)
+
+    private LocalDate lastPrunedDate; // 마지막 가지치기 날짜
+
+    @Column(nullable = false)
     private boolean pruned; // 가지치기 여부
+
+    @Column(nullable = false)
+    private int fertilizeIntervalDays; // 영양제 주는 주기(일 단위)
+
+    private LocalDate lastFertilizedDate; // 마지막 영양제 준 날짜
 
     @Column(nullable = false)
     private boolean fertilized; // 영양제 주기 여부
@@ -97,6 +117,29 @@ public class UserPlant {
         this.watered = watered;
         this.pruned = pruned;
         this.fertilized = fertilized;
+    }
+
+    public void updateIsNotificationEnabled(boolean isNotificationEnabled) {
+        this.isNotificationEnabled = isNotificationEnabled;
+    }
+
+    public void updateUserPlantIntervalDays(
+            int waterIntervalDays, int pruneIntervalDays, int fertilizeIntervalDays) {
+        this.waterIntervalDays = waterIntervalDays;
+        this.pruneIntervalDay = pruneIntervalDays;
+        this.fertilizeIntervalDays = fertilizeIntervalDays;
+    }
+
+    public void updateLastWateredDate(LocalDate lastWateredDate) {
+        this.lastWateredDate = lastWateredDate;
+    }
+
+    public void updateLastPrunedDate(LocalDate lastPrunedDate) {
+        this.lastPrunedDate = lastPrunedDate;
+    }
+
+    public void updateLastFertilizedDate(LocalDate lastFertilizedDate) {
+        this.lastFertilizedDate = lastFertilizedDate;
     }
 
     public void updateUserPlantImage(ImageFile userPlantImageFile) {

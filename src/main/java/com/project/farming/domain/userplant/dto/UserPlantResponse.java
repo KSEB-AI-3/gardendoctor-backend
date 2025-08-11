@@ -16,9 +16,15 @@ public class UserPlantResponse {
     private String plantingPlace; // 심은 장소(등록된 텃밭, 직접 입력)
     private LocalDateTime plantedDate;
     private String notes;
-    private Boolean watered; // 물 주기 여부
-    private Boolean pruned; // 가지치기 여부
-    private Boolean fertilized; // 영양제 주기 여부
+
+    private boolean isNotificationEnabled; // 알림 수신 여부
+    private int waterIntervalDays; // 물 주는 주기(일 단위)
+    private int pruneIntervalDay; // 가지치기 주기(일 단위)
+    private int fertilizeIntervalDays; // 영양제 주는 주기(일 단위)
+    private boolean watered; // 물 주기 여부
+    private boolean pruned; // 가지치기 여부
+    private boolean fertilized; // 영양제 주기 여부
+
     private String userPlantImageUrl;
 
     // 등록된 식물인 경우
