@@ -319,7 +319,6 @@ public class UserPlantService {
 
     /**
      * 사용자 입력 식물인지 아닌지 확인
-     *
      * @param oldPlantName 기존 사용자 식물 종류 이름(Plant의 PlantName)
      * @param requestPlantName 사용자가 작성한 식물 이름(other)
      * @return 결과값(TF)

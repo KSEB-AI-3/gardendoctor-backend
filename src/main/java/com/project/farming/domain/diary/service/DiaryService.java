@@ -67,8 +67,8 @@ public class DiaryService {
                 if (!userPlant.getUser().getUserId().equals(user.getUserId())) {
                     throw new IllegalArgumentException("본인의 식물이 아닌 식물이 선택되었습니다.");
                 }
-            }
-            for (UserPlant userPlant : userPlants) {
+                // ✨ 이 부분을 추가합니다.
+                userPlant.updateUserPlantStatus(watered, pruned, fertilized);
                 DiaryUserPlant diaryUserPlant = DiaryUserPlant.builder()
                         .diary(diary)
                         .userPlant(userPlant)
