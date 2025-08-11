@@ -126,20 +126,19 @@ public class UserPlant {
 
     public void updateUserPlantStatus(boolean watered, boolean pruned, boolean fertilized) {
         this.watered = watered;
+        if (watered) {
+            this.lastWateredDate = LocalDate.now();
+        }
+
         this.pruned = pruned;
+        if (pruned) {
+            this.lastPrunedDate = LocalDate.now();
+        }
+
         this.fertilized = fertilized;
-    }
-
-    public void updateLastWateredDate(LocalDate lastWateredDate) {
-        this.lastWateredDate = lastWateredDate;
-    }
-
-    public void updateLastPrunedDate(LocalDate lastPrunedDate) {
-        this.lastPrunedDate = lastPrunedDate;
-    }
-
-    public void updateLastFertilizedDate(LocalDate lastFertilizedDate) {
-        this.lastFertilizedDate = lastFertilizedDate;
+        if (fertilized) {
+            this.lastFertilizedDate = LocalDate.now();
+        }
     }
 
     public void updateUserPlantImage(ImageFile userPlantImageFile) {

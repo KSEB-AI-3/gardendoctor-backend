@@ -76,6 +76,7 @@ public class UserPlantService {
                 .fertilized(request.getFertilized())
                 .userPlantImageFile(defaultImageFile)
                 .build();
+        newUserPlant.updateUserPlantStatus(request.getWatered(), request.getPruned(), request.getFertilized());
         UserPlant savedUserPlant = userPlantRepository.save(newUserPlant);
         Long userPlantId = savedUserPlant.getUserPlantId();
 

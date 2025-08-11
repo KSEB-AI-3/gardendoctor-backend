@@ -39,4 +39,55 @@ public interface UserPlantRepository extends JpaRepository<UserPlant, Long>  {
             @Param("otherFarm") Farm otherFarm,
             @Param("place") String place,
             @Param("oldFarm") Farm oldFarm);
+
+    @Query("""
+        SELECT up FROM UserPlant up
+        WHERE up.isNotificationEnabled = true
+          AND up.lastWateredDate IS NOT NULL
+          AND FUNCTION('DATEDIFF', CURRENT_DATE, up.lastWateredDate) >= up.waterIntervalDays
+        """)
+    List<UserPlant> findUserPlantsNeedWateringToday();
+
+    @Query("""
+        SELECT up FROM UserPlant up
+        WHERE up.isNotificationEnabled = true
+          AND up.lastPrunedDate IS NOT NULL
+          AND FUNCTION('DATEDIFF', CURRENT_DATE, up.lastPrunedDate) >= up.pruneIntervalDays
+        """)
+    List<UserPlant> findUserPlantsNeedPruningToday();
+
+    @Query("""
+        SELECT up FROM UserPlant up
+        WHERE up.isNotificationEnabled = true
+          AND up.lastFertilizedDate IS NOT NULL
+          AND FUNCTION('DATEDIFF', CURRENT_DATE, up.lastFertilizedDate) >= up.fertilizeIntervalDays
+        """)
+    List<UserPlant> findUserPlantsNeedFertilizingToday();
+
+    @Query("""
+        SELECT up FROM UserPlant up
+        WHERE up.isNotificationEnabled = true
+          AND up.watered = false
+          AND up.lastWateredDate IS NOT NULL
+          AND FUNCTION('DATEDIFF', CURRENT_DATE, up.lastWateredDate) >= up.waterIntervalDays
+        """)
+    List<UserPlant> findUserPlantsIncompleteWateringToday();
+
+    @Query("""
+        SELECT up FROM UserPlant up
+        WHERE up.isNotificationEnabled = true
+          AND up.pruned = false
+          AND up.lastPrunedDate IS NOT NULL
+          AND FUNCTION('DATEDIFF', CURRENT_DATE, up.lastPrunedDate) >= up.pruneIntervalDays
+        """)
+    List<UserPlant> findUserPlantsIncompletePruningToday();
+
+    @Query("""
+        SELECT up FROM UserPlant up
+        WHERE up.isNotificationEnabled = true
+          AND up.fertilized = false
+          AND up.lastFertilizedDate IS NOT NULL
+          AND FUNCTION('DATEDIFF', CURRENT_DATE, up.lastFertilizedDate) >= up.fertilizeIntervalDays
+        """)
+    List<UserPlant> findUserPlantsIncompleteFertilizingToday();
 }
