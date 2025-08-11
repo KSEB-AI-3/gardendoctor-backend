@@ -27,7 +27,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class UserPlantService {
@@ -68,6 +67,9 @@ public class UserPlantService {
                 .plantingPlace(plantingPlace)
                 .plantedDate(request.getPlantedDate())
                 .notes(request.getNotes())
+                .watered(request.getWatered())
+                .pruned(request.getPruned())
+                .fertilized(request.getFertilized())
                 .userPlantImageFile(defaultImageFile)
                 .build();
         UserPlant savedUserPlant = userPlantRepository.save(newUserPlant);
@@ -78,9 +80,7 @@ public class UserPlantService {
             ImageFile imageFile = imageFileService.uploadImage(file, ImageDomainType.USERPLANT, userPlantId);
             savedUserPlant.updateUserPlantImage(imageFile);
         }
-        return toUserPlantResponseBuilder(newUserPlant, true, false)
-                .userPlantId(userPlantId)
-                .build();
+        return toUserPlantResponseBuilder(newUserPlant, true, false).build();
     }
 
     /**
@@ -90,6 +90,7 @@ public class UserPlantService {
      * @param userId 사용자 ID
      * @return 각 사용자 식물 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<UserPlantResponse> findAllUserPlants(Long userId) {
         User user = findUserById(userId);
         List<UserPlant> foundUserPlants = userPlantRepository.findByUserOrderByPlantNicknameAsc(user);
@@ -110,6 +111,7 @@ public class UserPlantService {
      * @param keyword 검색어(사용자 식물 별명)
      * @return 검색된 사용자 식물 정보의 Response DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<UserPlantResponse> findUserPlantsByKeyword(Long userId, String keyword) {
         List<UserPlant> foundUserPlants = userPlantRepository.findByUserAndPlantContainingOrderByPlantNicknameAsc(userId, "%"+keyword+"%");
         return foundUserPlants.stream()
@@ -125,6 +127,7 @@ public class UserPlantService {
      * @param userPlantId 조회할 사용자 식물 정보의 ID
      * @return 해당 사용자 식물 정보의 Response DTO
      */
+    @Transactional(readOnly = true)
     public UserPlantResponse findUserPlant(Long userId, Long userPlantId) {
         User user = findUserById(userId);
         UserPlant foundUserPlant = findUserPlantByUserAndUserPlantId(user, userPlantId);
@@ -153,10 +156,17 @@ public class UserPlantService {
                     newFile, ImageDomainType.USERPLANT, userPlantId);
             userPlant.updateUserPlantImage(imageFile);
         }
+        if (isOtherPlant(userPlant.getPlant().getPlantName(), request.getPlantName())) {
+            // 사용자 입력 식물인 경우 수정
+            if (!Objects.equals(request.getPlantName(), userPlant.getPlantName())) {
+                userPlant.updatePlantName(request.getPlantName());
+            }
+        }
         Farm farm = findFarmByGardenUniqueId(request.getGardenUniqueId());
         String plantingPlace = getPlantingPlace(farm.getFarmName(), farm.getLotNumberAddress(), request.getPlantingPlace());
         userPlant.updatePlantingPlace(farm, plantingPlace);
         userPlant.updateUserPlantInfo(request.getPlantNickname(), request.getNotes());
+        userPlant.updateUserPlantStatus(request.getWatered(), request.getPruned(), request.getFertilized());
         UserPlant updatedUserPlant = userPlantRepository.save(userPlant);
         return toUserPlantResponseBuilder(updatedUserPlant, true, false).build();
     }
@@ -196,7 +206,10 @@ public class UserPlantService {
                 .userPlantImageUrl(userPlant.getUserPlantImageFile().getImageUrl());
         if (includeDetails) {
             builder.plantedDate(userPlant.getPlantedDate())
-                    .notes(userPlant.getNotes());
+                    .notes(userPlant.getNotes())
+                    .watered(userPlant.isWatered())
+                    .pruned(userPlant.isPruned())
+                    .fertilized(userPlant.isFertilized());
         }
         if (includePlantDetails) {
             Plant plant = userPlant.getPlant();
@@ -266,7 +279,7 @@ public class UserPlantService {
      * @param gardenUniqueId 조회할 텃밭의 고유번호
      * @return 조회한 텃밭 정보
      */
-    private Farm findFarmByGardenUniqueId(Integer gardenUniqueId) {
+    private Farm findFarmByGardenUniqueId(int gardenUniqueId) {
         return farmRepository.findByGardenUniqueId(gardenUniqueId)
                 .orElseGet(() -> farmRepository.getOtherFarm("기타(Other)")
                         .orElseThrow(() -> new FarmNotFoundException("DB에 '기타(Other)' 항목이 존재하지 않습니다.")));
@@ -290,5 +303,18 @@ public class UserPlantService {
             plantingPlace = lotNumberAddress;
         }
         return plantingPlace;
+    }
+
+    /**
+     * 사용자 입력 식물인지 아닌지 확인
+     *
+     * @param oldPlantName 기존 사용자 식물 종류 이름(Plant의 PlantName)
+     * @param requestPlantName 사용자가 작성한 식물 이름(other)
+     * @return 결과값(TF)
+     */
+    private boolean isOtherPlant(String oldPlantName, String requestPlantName) {
+        return Objects.equals(oldPlantName, "기타")
+                && !plantRepository.existsByPlantName(requestPlantName)
+                && !plantRepository.existsByPlantEnglishName(requestPlantName);
     }
 }

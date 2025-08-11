@@ -28,6 +28,8 @@ public interface PlantRepository extends JpaRepository<Plant, Long> {
         """, nativeQuery = true)
     List<Plant> findByPlantNameContainingOrderByPlantIdAsc(@Param("keyword") String keyword);
 
+    boolean existsByPlantEnglishName(String plantName);
+
     @Query(value = """
         SELECT * FROM plant_info
         WHERE plant_name = :plantName OR plant_english_name = :plantName LIMIT 1

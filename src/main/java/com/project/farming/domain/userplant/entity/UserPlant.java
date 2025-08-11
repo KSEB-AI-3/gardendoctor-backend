@@ -7,9 +7,9 @@ import com.project.farming.domain.user.entity.User;
 import com.project.farming.global.image.entity.ImageFile;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Table(
@@ -51,6 +51,15 @@ public class UserPlant {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(nullable = false)
+    private boolean watered; // 물 주기 여부
+
+    @Column(nullable = false)
+    private boolean pruned; // 가지치기 여부
+
+    @Column(nullable = false)
+    private boolean fertilized; // 영양제 주기 여부
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_plant_image_file_id", nullable = false)
     private ImageFile userPlantImageFile;
@@ -70,9 +79,7 @@ public class UserPlant {
 
     // 사용자 입력 식물이면 식물 이름 수정 가능
     public void updatePlantName(String plantName) {
-        if (Objects.equals(this.plant.getPlantName(), "기타")) {
-            this.plantName = plantName;
-        }
+        this.plantName = plantName;
     }
 
     public void updateUserPlantInfo(String plantNickname, String notes) {
@@ -84,6 +91,12 @@ public class UserPlant {
     public void updatePlantingPlace(Farm farm, String plantingPlace) {
         this.farm = farm;
         this.plantingPlace = plantingPlace;
+    }
+
+    public void updateUserPlantStatus(boolean watered, boolean pruned, boolean fertilized) {
+        this.watered = watered;
+        this.pruned = pruned;
+        this.fertilized = fertilized;
     }
 
     public void updateUserPlantImage(ImageFile userPlantImageFile) {
