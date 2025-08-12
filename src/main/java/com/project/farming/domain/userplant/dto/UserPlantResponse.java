@@ -11,16 +11,16 @@ import java.time.LocalDateTime;
 @Builder
 public class UserPlantResponse {
     private Long userPlantId;
-    private String plantName; // 식물 이름(등록된 식물, 직접 입력)
+    private String plantName; // 식물 종류(등록된 식물, 직접 입력)
     private String plantNickname;
     private String plantingPlace; // 심은 장소(등록된 텃밭, 직접 입력)
     private LocalDateTime plantedDate;
     private String notes;
 
     private boolean isNotificationEnabled; // 알림 수신 여부
-    private int waterIntervalDays; // 물 주는 주기(일 단위)
-    private int pruneIntervalDays; // 가지치기 주기(일 단위)
-    private int fertilizeIntervalDays; // 영양제 주는 주기(일 단위)
+    private int waterIntervalDays; // 물 주는 간격(일 단위)
+    private int pruneIntervalDays; // 가지치기 간격(일 단위)
+    private int fertilizeIntervalDays; // 영양제 주는 간격(일 단위)
     private boolean watered; // 물 주기 여부
     private boolean pruned; // 가지치기 여부
     private boolean fertilized; // 영양제 주기 여부

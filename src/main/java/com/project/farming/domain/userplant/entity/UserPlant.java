@@ -57,7 +57,7 @@ public class UserPlant {
     private boolean isNotificationEnabled; // 알림 수신 여부
 
     @Column(nullable = false)
-    private int waterIntervalDays; // 물 주는 주기(일 단위)
+    private int waterIntervalDays; // 물 주는 간격(일 단위)
     
     private LocalDate lastWateredDate; // 마지막 물 준 날짜
     
@@ -65,7 +65,7 @@ public class UserPlant {
     private boolean watered; // 물 주기 여부
 
     @Column(nullable = false)
-    private int pruneIntervalDays; // 가지치기 주기(일 단위)
+    private int pruneIntervalDays; // 가지치기 간격(일 단위)
 
     private LocalDate lastPrunedDate; // 마지막 가지치기 날짜
 
@@ -73,7 +73,7 @@ public class UserPlant {
     private boolean pruned; // 가지치기 여부
 
     @Column(nullable = false)
-    private int fertilizeIntervalDays; // 영양제 주는 주기(일 단위)
+    private int fertilizeIntervalDays; // 영양제 주는 간격(일 단위)
 
     private LocalDate lastFertilizedDate; // 마지막 영양제 준 날짜
 

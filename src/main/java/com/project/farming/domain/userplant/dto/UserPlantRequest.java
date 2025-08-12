@@ -20,7 +20,7 @@ public class UserPlantRequest {
     private String plantNickname; // 등록된 식물, 직접 입력
 
     @NotNull(message = "식물을 심은 장소를 입력해주세요.")
-    private Integer gardenUniqueId;
+    private Integer gardenUniqueId; // 텃밭 고유번호
 
     private String plantingPlace; // 등록된 텃밭, 직접 입력
     private LocalDateTime plantedDate;
@@ -29,13 +29,13 @@ public class UserPlantRequest {
     @NotNull(message = "알림 수신 여부를 입력해주세요.")
     private Boolean isNotificationEnabled;
     
-    @NotNull(message = "물 주는 주기(일 단위)를 입력해주세요.")
+    @NotNull(message = "물 주는 간격(일 단위)를 입력해주세요.")
     private Integer waterIntervalDays;
 
-    @NotNull(message = "가지치기 주기(일 단위)를 입력해주세요.")
+    @NotNull(message = "가지치기 간격(일 단위)를 입력해주세요.")
     private Integer pruneIntervalDays;
 
-    @NotNull(message = "영양제 주는 주기(일 단위)를 입력해주세요.")
+    @NotNull(message = "영양제 주는 간격(일 단위)를 입력해주세요.")
     private Integer fertilizeIntervalDays;
 
     @NotNull(message = "물 주기 여부를 입력해주세요.")

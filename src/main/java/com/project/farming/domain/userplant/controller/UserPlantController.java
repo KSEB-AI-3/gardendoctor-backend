@@ -99,9 +99,10 @@ public class UserPlantController {
     @Operation(summary = "특정 사용자 식물 정보 수정",
             description = """
                     사용자 ID에 해당하는 사용자의 특정 식물의 정보를 수정합니다.
-                    1. 기본 식물 12종 외의 사용자 입력 식물이라면 식물 종류(plantName)을 수정할 수 있습니다.
+                    1. 기본 식물 12종 외의 사용자 입력 식물이라면 식물 종류(plantName)를 수정할 수 있습니다.
                     2. 식물의 별명(plantNickname), 메모(notes), 심은 장소(plantingPlace, 옮겨 심는 경우),
-                       식물의 상태(물/가지치기/영양제 여부)와 물/가지치기/영양제 수행 주기(일 단위), 알림 수신 여부를 수정할 수 있습니다.
+                       알림 수신 여부, 식물의 3가지(물 주기/가지치기/영양제 주기) 상태(watered/pruned/fertilized),
+                       물 주기/가지치기/영양제 주기 간격(IntervalDays, 일 단위)을 수정할 수 있습니다.
                     3. 사용자 식물 정보는 JSON 형태로 전달하며, 이미지 파일은 선택적으로 함께 첨부할 수 있습니다.
                     4. Content-Type은 multipart/form-data입니다.
                     """
