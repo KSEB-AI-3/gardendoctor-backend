@@ -54,7 +54,8 @@ public class UserPlantController {
                     사용자 ID에 해당하는 사용자가 등록한 모든 식물을 별명 순으로 조회합니다.
                     일부 정보만 반환합니다.
                     (userPlantId, plantName(식물 종류), plantNickname(식물 별명),
-                     plantingPlace(심은 장소), userPlantImageUrl(이미지 URL))
+                     plantingPlace(심은 장소), isNotificationEnabled(알림 수신 여부)
+                     IntervalDays(물 주기/가지치기/영양제 주기 간격), userPlantImageUrl(이미지 URL))
                     """)
     public ResponseEntity<List<UserPlantResponse>> getAllUserPlants(
             @Parameter(hidden = true)
@@ -69,7 +70,8 @@ public class UserPlantController {
                     사용자 ID에 해당하는 사용자가 등록한 식물 중에서 입력한 키워드(식물 종류 또는 별명)를 포함하는
                      모든 식물을 별명 순으로 조회합니다. 일부 정보만 반환합니다.
                      (userPlantId, plantName(식물 종류), plantNickname(식물 별명),
-                     plantingPlace(심은 장소), userPlantImageUrl(이미지 URL))
+                      plantingPlace(심은 장소), isNotificationEnabled(알림 수신 여부)
+                      IntervalDays(물 주기/가지치기/영양제 주기 간격), userPlantImageUrl(이미지 URL))
                     """
     )
     public ResponseEntity<List<UserPlantResponse>> searchUserPlants(

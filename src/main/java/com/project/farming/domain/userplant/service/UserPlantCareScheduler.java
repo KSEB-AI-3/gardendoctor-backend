@@ -45,7 +45,7 @@ public class UserPlantCareScheduler {
      * - FCM 토큰이 유효하지 않는 사용자의 userPlant, 알림 수신 안 하는 userPlant 제외
      */
     @Transactional
-    @Scheduled(cron = "0 0 9  * * *")
+    @Scheduled(cron = "0 0 9 * * *")
     public void sendDailyTasksNotification() {
         Map<UserPlant, List<String>> tasksByUserPlant = new HashMap<>();
 
