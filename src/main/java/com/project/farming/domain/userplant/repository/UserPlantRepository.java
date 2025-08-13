@@ -1,6 +1,7 @@
 package com.project.farming.domain.userplant.repository;
 
 import com.project.farming.domain.farm.entity.Farm;
+import com.project.farming.domain.plant.entity.Plant;
 import com.project.farming.domain.userplant.entity.UserPlant;
 import com.project.farming.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,15 +31,14 @@ public interface UserPlantRepository extends JpaRepository<UserPlant, Long>  {
     List<UserPlant> findAllWithUserAndPlant();
 
     @Modifying
-    @Query("""
-            UPDATE UserPlant up
-            SET up.farm = :otherFarm, up.plantingPlace = :place
-            WHERE up.farm = :oldFarm
-            """)
+    @Query("UPDATE UserPlant up SET up.farm = :otherFarm WHERE up.farm = :oldFarm")
     int reassignFarm(
-            @Param("otherFarm") Farm otherFarm,
-            @Param("place") String place,
-            @Param("oldFarm") Farm oldFarm);
+            @Param("otherFarm") Farm otherFarm, @Param("oldFarm") Farm oldFarm);
+
+    @Modifying
+    @Query("UPDATE UserPlant up SET up.plant = :otherPlant WHERE up.plant = :oldPlant")
+    int reassignPlant(
+            @Param("otherPlant") Plant otherPlant, @Param("oldPlant") Plant oldPlant);
 
     @Query("""
         SELECT up FROM UserPlant up

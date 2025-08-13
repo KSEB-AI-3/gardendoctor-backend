@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -131,7 +130,7 @@ public class FarmAdminService {
     /**
      * 특정 텃밭 정보 삭제
      * - 삭제할 텃밭과 매핑된 userPlant가 있다면
-     *  해당 userPlant의 텃밭을 '기타(Other)' 로 변경
+     *   해당 userPlant의 텃밭을 '기타(Other)'로 변경
      *
      * @param farmId 삭제할 텃밭 정보의 ID
      */
@@ -147,8 +146,7 @@ public class FarmAdminService {
                     log.error("DB에 '기타(Other)' 항목이 존재하지 않습니다.");
                     return new FarmNotFoundException("DB에 '기타(Other)' 항목이 존재하지 않습니다.");
                 });
-        String plantingPlace = getPlantingPlace(farm.getFarmName(), farm.getLotNumberAddress());
-        int updatedCount = userPlantRepository.reassignFarm(otherFarm, plantingPlace, farm);
+        int updatedCount = userPlantRepository.reassignFarm(otherFarm, farm);
         if (updatedCount == 0) log.info("해당 텃밭({})과 매핑된 사용자 식물이 없습니다.", farmId);
         else log.info(
                 "해당 텃밭({})과 매핑된 사용자 식물 {}개의 텃밭 정보가 '기타(Other)'로 수정되었습니다.", farmId, updatedCount);
@@ -201,20 +199,5 @@ public class FarmAdminService {
                     log.error("해당 텃밭이 존재하지 않습니다: {}", farmId);
                     return new FarmNotFoundException("해당 텃밭이 존재하지 않습니다: " + farmId);
                 });
-    }
-
-    /**
-     * 심은 장소 설정
-     *
-     * @param oldFarmName 원래 텃밭 이름(Farm)
-     * @param lotNumberAddress 텃밭 이름이 없는 경우에 사용할 이름(주소)
-     * @return 설정된 심은 장소 이름
-     */
-    private String getPlantingPlace(String oldFarmName, String lotNumberAddress) {
-        String plantingPlace = oldFarmName;
-        if (Objects.equals(plantingPlace, "N/A")) {
-            plantingPlace = lotNumberAddress;
-        }
-        return plantingPlace;
     }
 }

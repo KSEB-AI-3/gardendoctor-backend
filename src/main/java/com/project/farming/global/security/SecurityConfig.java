@@ -9,8 +9,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -32,16 +36,16 @@ public class SecurityConfig {
             .csrf(c -> c.disable())
 
             .authorizeHttpRequests(auth -> auth
-                // --- 1. 인증 없이 허용 ---
+                // --- 1) 인증 없이 허용 ---
                 .requestMatchers("/auth/register").permitAll()
                 .requestMatchers("/auth/login", "/logindashboard", "/login-success").permitAll()
                 .requestMatchers("/auth/token/refresh").permitAll()
                 .requestMatchers("/oauth2/**").permitAll()
                 .requestMatchers("/api/notify/test").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/", "/home", "/login", "/denied", "/expired", "/css/**").permitAll()
+                .requestMatchers("/", "/home", "/login", "/denied", "/expired", "/css/**", "/favicon.ico").permitAll()
 
-                // --- 2. 인증 필요 ---
+                // --- 2) 인증 필요 ---
                 .requestMatchers("/auth/logout").authenticated()
                 .requestMatchers("/auth/user/me").authenticated()
                 .requestMatchers("/api/farms/**").authenticated()
@@ -53,7 +57,7 @@ public class SecurityConfig {
                 .requestMatchers("/users/profile/**").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/users/fcm-token").authenticated()
 
-                // --- 3. 관리자 ---
+                // --- 3) 관리자 ---
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -100,5 +104,16 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // (선택) 필요 시 유지
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 }

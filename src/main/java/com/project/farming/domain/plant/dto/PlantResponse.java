@@ -11,7 +11,7 @@ public class PlantResponse {
     private Long plantId;
     private String plantName;
     private String plantEnglishName;
-    private String species;
+    private String species; // 식물 분류
     private String season;
     private String plantImageUrl;
 }

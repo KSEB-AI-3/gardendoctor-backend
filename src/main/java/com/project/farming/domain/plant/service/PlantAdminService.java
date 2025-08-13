@@ -4,6 +4,7 @@ import com.project.farming.domain.plant.dto.PlantAdminRequest;
 import com.project.farming.domain.plant.dto.PlantResponse;
 import com.project.farming.domain.plant.entity.Plant;
 import com.project.farming.domain.plant.repository.PlantRepository;
+import com.project.farming.domain.userplant.repository.UserPlantRepository;
 import com.project.farming.global.exception.ImageFileNotFoundException;
 import com.project.farming.global.exception.PlantNotFoundException;
 import com.project.farming.global.image.entity.DefaultImages;
@@ -28,6 +29,7 @@ public class PlantAdminService {
     private final PlantRepository plantRepository;
     private final ImageFileService imageFileService;
     private final ImageFileRepository imageFileRepository;
+    private final UserPlantRepository userPlantRepository;
 
     /**
      * 새로운 식물 정보 등록
@@ -38,15 +40,15 @@ public class PlantAdminService {
     @Transactional
     public void savePlant(PlantAdminRequest request, MultipartFile file) {
         if (plantRepository.existsByPlantName(request.getPlantName())) {
+            log.error("이미 존재하는 식물입니다: {}", request.getPlantName());
             throw new IllegalArgumentException("이미 존재하는 식물입니다: " + request.getPlantName());
         }
-        ImageFile defaultImageFile = imageFileRepository.findByS3Key(DefaultImages.DEFAULT_PLANT_IMAGE)
-                .orElseThrow(() -> new ImageFileNotFoundException("기본 식물 이미지가 존재하지 않습니다."));
+        ImageFile defaultImageFile = getDefaultImageFile();
         Plant newPlant = Plant.builder()
-                .plantName(request.getPlantName())
-                .plantEnglishName(request.getPlantEnglishName())
-                .species(request.getSpecies())
-                .season(request.getSeason())
+                .plantName(getOrDefault(request.getPlantName()))
+                .plantEnglishName(getOrDefault(request.getPlantEnglishName()))
+                .species(getOrDefault(request.getSpecies()))
+                .season(getOrDefault(request.getSeason()))
                 .plantImageFile(defaultImageFile)
                 .build();
         Plant savedPlant = plantRepository.save(newPlant);
@@ -107,21 +109,60 @@ public class PlantAdminService {
                     newFile, ImageDomainType.PLANT, plantId);
             plant.updatePlantImage(imageFile);
         }
-        plant.updatePlantInfo(request.getPlantName(), request.getPlantEnglishName(),
-                request.getSpecies(), request.getSeason());
+        plant.updatePlantInfo(getOrDefault(request.getPlantName()),
+                getOrDefault(request.getPlantEnglishName()),
+                getOrDefault(request.getSpecies()), getOrDefault(request.getSeason()));
         plantRepository.save(plant);
     }
 
     /**
      * 특정 식물 정보 삭제
+     * - 삭제할 식물과 매핑된 userPlant가 있다면
+     *   해당 userPlant의 식물을 '기타'로 변경
      *
      * @param plantId 삭제할 식물 정보의 ID
      */
     @Transactional
     public void deletePlant(Long plantId) {
         Plant plant = findPlantById(plantId);
+        if ("기타".equals(plant.getPlantName())) {
+            log.error("기본 식물 정보는 삭제할 수 없습니다.");
+            throw new RuntimeException("기본 식물 정보는 삭제할 수 없습니다.");
+        }
+        Plant otherPlant = plantRepository.getOtherPlant("기타")
+                .orElseThrow(() -> {
+                    log.error("DB에 '기타' 항목이 존재하지 않습니다.");
+                    return new PlantNotFoundException("DB에 '기타' 항목이 존재하지 않습니다.");
+                });
+        int updatedCount = userPlantRepository.reassignPlant(otherPlant, plant);
+        if (updatedCount == 0) log.info("해당 식물({})과 매핑된 사용자 식물이 없습니다.", plantId);
+        else log.info(
+                "해당 식물({})과 매핑된 사용자 식물 {}개의 식물 정보가 '기타'로 수정되었습니다.", plantId, updatedCount);
         plantRepository.delete(plant);
         imageFileService.deleteImage(plant.getPlantImageFile().getImageFileId()); // 기존 이미지 파일
+    }
+
+    /**
+     * 식물 기본 이미지 반환
+     *
+     * @return 식물 기본 이미지
+     */
+    private ImageFile getDefaultImageFile() {
+        return imageFileRepository.findByS3Key(DefaultImages.DEFAULT_PLANT_IMAGE)
+                .orElseThrow(() -> {
+                    log.error("기본 식물 이미지가 존재하지 않습니다.");
+                    return new ImageFileNotFoundException("기본 식물 이미지가 존재하지 않습니다.");
+                });
+    }
+
+    /**
+     * 기본값 설정(String)
+     *
+     * @param val 확인할 값
+     * @return 기본값 또는 request 값
+     */
+    private String getOrDefault(String val) {
+        return val == null || val.isBlank() || val.equals("-") ? "N/A" : val;
     }
 
     /**
@@ -148,6 +189,9 @@ public class PlantAdminService {
      */
     private Plant findPlantById(Long plantId) {
         return plantRepository.findById(plantId)
-                .orElseThrow(() -> new PlantNotFoundException("해당 식물이 존재하지 않습니다: " + plantId));
+                .orElseThrow(() -> {
+                    log.error("해당 식물이 존재하지 않습니다: {}", plantId);
+                    return new PlantNotFoundException("해당 식물이 존재하지 않습니다: " + plantId);
+                });
     }
 }
