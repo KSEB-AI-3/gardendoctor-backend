@@ -1,23 +1,21 @@
 package com.project.farming.global.oauth;
 
-import com.project.farming.domain.user.entity.User; // User 임포트 추가
-import com.project.farming.domain.user.repository.UserRepository; // UserRepository 임포트 추가
+import com.project.farming.domain.user.entity.User;
+import com.project.farming.domain.user.repository.UserRepository;
+import com.project.farming.global.jwtToken.CustomUserDetails;
 import com.project.farming.global.jwtToken.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -25,99 +23,68 @@ import java.util.Map;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository; // ⭐ UserRepository 주입
+    private final UserRepository userRepository;
+    private final HttpCookieOAuth2AuthorizationRequestRepository cookieRepo;
+
+    // 허용 스킴/호스트 화이트리스트
+    private static final Set<String> ALLOWED_SCHEMES = Set.of("https", "http", "gardendoctor");
+    private static final Set<String> ALLOWED_WEB_HOSTS = Set.of("localhost", "127.0.0.1" /*, "your-web-domain.com" */);
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException {
 
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-
-        String registrationId = null;
-        if (authentication instanceof OAuth2AuthenticationToken) {
-            registrationId = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
-        }
-
-        // ⭐ CustomOAuth2UserService에서 DB에 저장된 User 객체를 가져옵니다.
-        // CustomOAuth2UserService가 CustomUserDetails를 반환하고,
-        // CustomUserDetails가 User 객체를 가지고 있다면 다음과 같이 접근할 수 있습니다.
-        User user = null;
-        if (authentication.getPrincipal() instanceof com.project.farming.global.jwtToken.CustomUserDetails) {
-            user = ((com.project.farming.global.jwtToken.CustomUserDetails) authentication.getPrincipal()).getUser();
+        // 1) 사용자 식별 (CustomUserDetails 권장)
+        User user;
+        if (authentication.getPrincipal() instanceof CustomUserDetails cud) {
+            user = cud.getUser();
         } else {
-            // 만약 CustomUserDetails가 아닌 기본 OAuth2User를 반환한다면,
-            // 여기서 다시 DB에서 사용자를 찾아야 합니다.
-            // 이메일 또는 OAuth ID를 사용하여 사용자를 찾습니다.
-            String oauthId = getOAuthIdFromOAuth2User(oAuth2User, registrationId);
-            String email = getEmailFromOAuth2User(oAuth2User, registrationId); // 이메일도 가져오는 헬퍼 메서드 추가 필요
-
-            if (oauthId != null && registrationId != null) {
-                user = userRepository.findByOauthProviderAndOauthId(registrationId, oauthId)
-                        .orElse(null); // 또는 예외 처리
-            }
-            // 이메일로도 찾아볼 수 있습니다.
-            if (user == null && email != null) {
-                user = userRepository.findByEmail(email).orElse(null);
-            }
-        }
-
-        if (user == null) {
-            log.error("OAuth2 Login Success Handler: User not found in DB after successful authentication.");
-            // 사용자 정보를 찾지 못했으므로, 에러 페이지로 리다이렉트하거나 적절히 처리
+            log.error("Unexpected principal type: {}", authentication.getPrincipal().getClass());
             getRedirectStrategy().sendRedirect(request, response, "/login-error");
             return;
         }
 
-        // ⭐ JWT 토큰에 DB의 userId(PK)를 사용
+        // 2) 토큰 생성 (로그에 토큰 노출 금지!)
         String accessToken = jwtTokenProvider.generateToken(user.getUserId());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
+        log.info("OAuth2 Login Success: userId = {}", user.getUserId());
 
-        log.info("OAuth2 Login Success: User ID (PK) = {}", user.getUserId());
-        log.info("Generated Access Token: {}", accessToken);
-        log.info("Generated Refresh Token: {}", refreshToken);
+        // 3) redirect_uri를 쿠키에서 복구
+        String redirectUri = CookieUtils.getCookie(request,
+                HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME)
+                .map(c -> c.getValue())
+                .orElse(null);
 
-        String redirectUrlAfterLogin = "http://localhost:8080/login-success";
+        // 4) 안전한 리다이렉트 URL 생성 (기본값은 앱 딥링크)
+        String target = buildSafeRedirect(redirectUri, accessToken, refreshToken);
 
-        String targetUrl = UriComponentsBuilder.fromUriString(redirectUrlAfterLogin)
-                .queryParam("accessToken", URLEncoder.encode(accessToken, StandardCharsets.UTF_8))
-                .queryParam("refreshToken", URLEncoder.encode(refreshToken, StandardCharsets.UTF_8))
-                .build().toUriString();
-
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        // 5) 쿠키 정리 + 리다이렉트
+        cookieRepo.removeAuthorizationRequestCookies(request, response);
+        getRedirectStrategy().sendRedirect(request, response, target);
     }
 
-    // ⭐ OAuth2User 객체에서 각 서비스별 고유 ID (oauthId) 추출 (기존과 동일)
-    private String getOAuthIdFromOAuth2User(OAuth2User oAuth2User, String registrationId) {
-        if ("google".equals(registrationId)) {
-            return oAuth2User.getName();
-        } else if ("kakao".equals(registrationId)) {
-            Object id = oAuth2User.getAttribute("id");
-            return id != null ? String.valueOf(id) : null;
-        } else if ("naver".equals(registrationId)) {
-            Map<String, Object> response = oAuth2User.getAttribute("response");
-            if (response != null && response.containsKey("id")) {
-                return (String) response.get("id");
-            }
-        }
-        log.warn("Could not find a unique OAuth ID for provider {} with attributes: {}", registrationId, oAuth2User.getAttributes());
-        return null;
+    private String buildSafeRedirect(String redirectUri, String accessToken, String refreshToken) {
+        String fallback = "gardendoctor://oauth2redirect"; // ✅ Flutter 딥링크 기본값
+        String safe = (redirectUri != null && isAllowed(redirectUri)) ? redirectUri : fallback;
+
+        String at = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
+        String rt = URLEncoder.encode(refreshToken, StandardCharsets.UTF_8);
+
+        // 토큰은 URL 프래그먼트(#)로 전달 → 쿼리스트링보다 노출 가능성 낮음
+        return safe + "#accessToken=" + at + "&refreshToken=" + rt;
     }
 
-    // ⭐ OAuth2User 객체에서 이메일 추출 헬퍼 메서드 추가 (필요시)
-    private String getEmailFromOAuth2User(OAuth2User oAuth2User, String registrationId) {
-        if ("google".equals(registrationId)) {
-            return oAuth2User.getAttribute("email");
-        } else if ("kakao".equals(registrationId)) {
-            Map<String, Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
-            if (kakaoAccount != null && kakaoAccount.containsKey("email")) {
-                return (String) kakaoAccount.get("email");
+    private boolean isAllowed(String uri) {
+        try {
+            var u = java.net.URI.create(uri);
+            if (!ALLOWED_SCHEMES.contains(u.getScheme())) return false;
+            if ("http".equals(u.getScheme()) || "https".equals(u.getScheme())) {
+                return u.getHost() != null && ALLOWED_WEB_HOSTS.contains(u.getHost());
             }
-        } else if ("naver".equals(registrationId)) {
-            Map<String, Object> response = oAuth2User.getAttribute("response");
-            if (response != null && response.containsKey("email")) {
-                return (String) response.get("email");
-            }
+            // 커스텀 스킴(gardendoctor)은 호스트가 없을 수 있음
+            return true;
+        } catch (Exception e) {
+            return false;
         }
-        return null;
     }
 }
