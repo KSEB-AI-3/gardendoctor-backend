@@ -1,10 +1,9 @@
 // src/main/java/com/project/farming/domain/notification/service/NotificationService.java
 package com.project.farming.domain.notification.service;
 
-import com.project.farming.domain.fcm.FcmService;
+import com.project.farming.global.fcm.FcmService;
 import com.project.farming.domain.notification.dto.NotificationRequestDto;
 import com.project.farming.domain.notification.dto.NotificationResponseDto;
-import com.project.farming.domain.notification.entity.Notice;
 import com.project.farming.domain.notification.entity.Notification;
 import com.project.farming.domain.notification.repository.NotificationRepository;
 import com.project.farming.domain.user.entity.User;

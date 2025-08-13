@@ -1,6 +1,6 @@
 package com.project.farming.domain.notification.service;
 
-import com.project.farming.domain.fcm.FcmService;
+import com.project.farming.global.fcm.FcmService;
 import com.project.farming.domain.notification.dto.NoticeRequest;
 import com.project.farming.domain.notification.dto.NoticeResponse;
 import com.project.farming.domain.notification.entity.Notice;

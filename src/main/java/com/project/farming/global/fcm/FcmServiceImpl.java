@@ -1,4 +1,4 @@
-package com.project.farming.domain.fcm;
+package com.project.farming.global.fcm;
 
 import com.google.firebase.messaging.*;
 import lombok.RequiredArgsConstructor;
