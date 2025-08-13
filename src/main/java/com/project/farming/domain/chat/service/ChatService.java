@@ -82,6 +82,7 @@ public class ChatService {
         // 최종적으로 클라이언트에게 보낼 응답 생성
         return ChatResponseDto.builder()
                 .answer(answer)
+                .question(question)
                 .chatId(chatId) // 기존 chatId 또는 새로 생성된 chatId
                 .build();
     }
@@ -158,5 +159,30 @@ public class ChatService {
                         .messageCount(pythonSession.getMessageCount())
                         .build())
                 .collect(Collectors.toList());
+    }
+    /**
+     * 채팅방을 삭제합니다.
+     * @param userId 사용자 ID
+     * @param chatId 삭제할 채팅방 ID (Spring DB 기준)
+     */
+    @Transactional
+    public void deleteChatRoom(Long userId, Long chatId) {
+        // 1. 본인 소유의 채팅방인지 확인
+        validateChatHistoryOwnership(userId, chatId);
+
+        // 2. Python 세션 ID 조회
+        Long pythonSessionId = chatRepository.findById(chatId)
+                .map(Chat::getPythonSessionId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 정보를 찾을 수 없습니다."));
+
+        // 3. Python FastAPI 서버에 세션 삭제 요청
+        pythonWebClient.delete()
+                .uri("/api/chat/sessions/{sessionId}", pythonSessionId)
+                .retrieve()
+                .toBodilessEntity() // 응답 본문이 없을 경우
+                .block(); // 동기적으로 실행
+
+        // 4. Spring DB에서 채팅방 정보 삭제
+        chatRepository.deleteById(chatId);
     }
 }

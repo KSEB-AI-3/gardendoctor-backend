@@ -95,4 +95,19 @@ public class ChatController {
 
         return ResponseEntity.ok(chatRooms);
     }
+
+    /**
+     * ✨ [새로 추가된 메소드]
+     */
+    @Operation(summary = "챗봇 대화방 삭제", description = "특정 챗봇 대화방을 삭제합니다.")
+    @DeleteMapping("/{chatId}")
+    public ResponseEntity<Void> deleteChatRoom(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long chatId) {
+
+        Long userId = userDetails.getUser().getUserId();
+        chatService.deleteChatRoom(userId, chatId);
+
+        return ResponseEntity.ok().build();
+    }
 }
