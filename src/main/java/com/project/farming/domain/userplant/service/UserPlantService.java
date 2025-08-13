@@ -211,16 +211,16 @@ public class UserPlantService {
                 .plantName(userPlant.getPlantName())
                 .plantNickname(userPlant.getPlantNickname())
                 .plantingPlace(userPlant.getPlantingPlace())
+                .isNotificationEnabled(userPlant.isNotificationEnabled())
+                .waterIntervalDays(userPlant.getWaterIntervalDays())
+                .pruneIntervalDays(userPlant.getPruneIntervalDays())
+                .fertilizeIntervalDays(userPlant.getFertilizeIntervalDays())
                 .userPlantImageUrl(userPlant.getUserPlantImageFile().getImageUrl());
         if (includeDetails) {
             builder.plantedDate(userPlant.getPlantedDate())
                     .notes(userPlant.getNotes())
-                    .isNotificationEnabled(userPlant.isNotificationEnabled())
-                    .waterIntervalDays(userPlant.getWaterIntervalDays())
                     .watered(userPlant.isWatered())
-                    .pruneIntervalDays(userPlant.getPruneIntervalDays())
                     .pruned(userPlant.isPruned())
-                    .fertilizeIntervalDays(userPlant.getFertilizeIntervalDays())
                     .fertilized(userPlant.isFertilized());
         }
         if (includePlantDetails) {
