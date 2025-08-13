@@ -103,11 +103,6 @@ public class NoticeService {
      */
     @Transactional
     public void updateNotice(Long noticeId, NoticeRequest request) {
-        if (noticeRepository.existsByTitleAndContent(request.getTitle(), request.getContent())) {
-            log.error("이미 등록된 공지사항입니다: 제목 - {}, 내용 - {}.", request.getTitle(), request.getContent());
-            throw new IllegalArgumentException(
-                    "이미 등록된 공지사항입니다: 제목 - " + request.getTitle() +  ", 내용 - " + request.getContent());
-        }
         Notice notice = findNoticeById(noticeId);
         notice.updateNotice(
                 request.getTitle(), request.getContent(), request.getSentAt());

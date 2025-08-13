@@ -56,7 +56,10 @@ public class UserAdminService {
         List<User> foundUsers = switch (searchType) {
             case "name" -> userRepository.findByNicknameContainingOrderByNicknameAsc(keyword);
             case "email" -> userRepository.findByEmailContainingOrderByEmailAsc(keyword);
-            default -> throw new IllegalArgumentException("지원하지 않는 검색 조건입니다: " + searchType);
+            default -> {
+                log.error("지원하지 않는 검색 조건입니다: {}", searchType);
+                throw new IllegalArgumentException("지원하지 않는 검색 조건입니다: " + searchType);
+            }
         };
         return foundUsers.stream()
                 .map(user -> toUserAdminResponseBuilder(user).build())
@@ -71,8 +74,7 @@ public class UserAdminService {
      */
     @Transactional(readOnly = true)
     public UserAdminResponse findUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+        User user = findUserById(userId);
         return toUserAdminResponseBuilder(user).build();
     }
 
@@ -85,9 +87,7 @@ public class UserAdminService {
      */
     @Transactional
     public void updateUser(Long userId, UserAdminRequest request, MultipartFile newFile) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId));
-
+        User user = findUserById(userId);
         if (newFile != null && !newFile.isEmpty()) {
             // 새로운 이미지 파일이 첨부되어 있는 경우
             ImageFile imageFile = imageFileService.updateImage(
@@ -132,6 +132,20 @@ public class UserAdminService {
                 .fcmToken(user.getFcmToken())
                 .subscriptionStatus(user.getSubscriptionStatus())
                 .profileImageUrl(user.getProfileImageFile().getImageUrl());
+    }
+
+    /**
+     * ID로 사용자 정보 조회
+     *
+     * @param userId 조회할 사용자 정보의 ID
+     * @return 조회한 사용자 정보
+     */
+    private User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("사용자를 찾을 수 없습니다: {}", userId);
+                    return new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId);
+                });
     }
 
     /**

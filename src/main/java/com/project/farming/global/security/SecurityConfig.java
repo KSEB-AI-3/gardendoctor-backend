@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers("/api/notify/test").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**",  "/swagger-ui.html").permitAll()
-                        .requestMatchers("/", "/home", "/login", "/denied", "/expired", "/css/**").permitAll() // 관리자 페이지 관련
+                        .requestMatchers("/", "/home", "/login", "/denied", "/expired", "/css/**", "/favicon.ico").permitAll() // 관리자 페이지 관련
                         // --- 2. 인증 필요 (authenticated()) ---
                         .requestMatchers("/auth/logout").authenticated()
                         .requestMatchers("/auth/user/me").authenticated()
