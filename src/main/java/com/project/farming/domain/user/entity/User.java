@@ -3,7 +3,6 @@ package com.project.farming.domain.user.entity;
 import com.project.farming.domain.analysis.entity.PhotoAnalysis;
 import com.project.farming.domain.chat.entity.Chat;
 import com.project.farming.domain.notification.entity.Notification;
-import com.project.farming.domain.subscription.entity.Subscription;
 import com.project.farming.domain.userplant.entity.UserPlant;
 import com.project.farming.global.image.entity.ImageFile;
 import com.project.farming.global.jwtToken.RefreshToken;
@@ -100,19 +99,15 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Notification> notifications;
 
-    // 3. Subscription 연관관계
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Subscription> subscriptions;
-
-    // 4. RefreshToken 연관관계
+    // 3. RefreshToken 연관관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<RefreshToken> refreshTokens;
 
-    // 5. Chat 연관관계
+    // 4. Chat 연관관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Chat> chats;
 
-    // 6. PhotoAnalysis 엔티티와의 연관관계 추가
+    // 5. PhotoAnalysis 엔티티와의 연관관계 추가
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PhotoAnalysis> photoAnalyses = new ArrayList<>();
