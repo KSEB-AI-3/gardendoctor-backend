@@ -17,6 +17,8 @@ import com.project.farming.global.image.repository.ImageFileRepository;
 import com.project.farming.global.image.service.ImageFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +46,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final ImageFileRepository imageFileRepository;
     private final ImageFileService imageFileService;
+    private final JavaMailSender mailSender;
 
     @Transactional
     public User registerUser(String email, String password, String nickname) {
@@ -312,6 +316,83 @@ public class AuthService {
                 .role(user.getRole())
                 .subscriptionStatus(user.getSubscriptionStatus())
                 .build();
+    }
+    /**
+     * 닉네임으로 이메일을 찾아 일부를 마스킹하여 반환합니다.
+     * @param nickname 찾을 사용자의 닉네임
+     * @return 마스킹된 이메일 (예: user****@example.com)
+     */
+    @Transactional(readOnly = true)
+    public String findEmailByNickname(String nickname) {
+        User user = userRepository.findByNickname(nickname) // findByNickname 메서드 필요
+                .orElseThrow(() -> new UserNotFoundException("해당 닉네임의 사용자를 찾을 수 없습니다."));
+
+        String email = user.getEmail();
+        int atIndex = email.indexOf("@");
+        if (atIndex <= 4) { // @ 앞의 아이디가 4글자 이하인 경우
+            return email.substring(0, 1) + "***" + email.substring(atIndex);
+        }
+        return email.substring(0, 4) + "****" + email.substring(atIndex);
+    }
+
+    /**
+     * 비밀번호 재설정을 위해 임시 비밀번호를 생성하고 이메일로 발송합니다.
+     * @param email 임시 비밀번호를 받을 이메일 주소
+     */
+    @Transactional
+    public void sendPasswordResetEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("가입되지 않은 이메일입니다."));
+
+        // 1. 임시 비밀번호 생성 (8자리 랜덤 문자열)
+        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+
+        // 2. 사용자의 비밀번호를 임시 비밀번호로 업데이트 (암호화)
+        user.updatePassword(passwordEncoder.encode(tempPassword));
+        userRepository.save(user);
+
+        // 3. 이메일 발송
+        // TODO: 이메일 발송 로직 구현
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("[텃밭닥터] 임시 비밀번호 안내");
+        message.setText("안녕하세요, 텃밭닥터입니다.\n\n"
+                + "임시 비밀번호는 다음과 같습니다: " + tempPassword + "\n\n"
+                + "로그인 후 반드시 비밀번호를 변경해주세요.");
+        // mailSender.send(message); // 실제 발송 코드 (주석 해제 필요)
+        // 4. 실제 이메일 발송
+        try {
+            mailSender.send(message);
+            log.info("이메일로 임시 비밀번호 발송 완료: {}", email);
+        } catch (Exception e) {
+            log.error("이메일 발송 실패: To={}, Error={}", email, e.getMessage());
+            // 실제 운영에서는 이메일 발송 실패에 대한 예외 처리를 더 견고하게 해야 합니다.
+            throw new RuntimeException("이메일 발송 중 오류가 발생했습니다.");
+        }
+        log.info("이메일로 임시 비밀번호 발송 완료: {}", email);
+    }
+
+    /**
+     * 로그인된 사용자의 비밀번호를 변경합니다.
+     * @param userId 현재 로그인된 사용자의 ID
+     * @param currentPassword 현재 비밀번호
+     * @param newPassword 새 비밀번호
+     */
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        // 1. 현재 비밀번호가 맞는지 확인
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 2. 새 비밀번호로 업데이트 (암호화)
+        user.updatePassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        log.info("사용자 ID {}의 비밀번호가 변경되었습니다.", userId);
     }
 
 }

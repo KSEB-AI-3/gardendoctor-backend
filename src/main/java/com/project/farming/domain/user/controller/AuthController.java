@@ -240,4 +240,44 @@ public class AuthController {
         return ResponseEntity.ok(updated);
     }
 
+    @Operation(summary = "이메일 찾기", description = "닉네임으로 사용자의 이메일을 찾습니다. (마스킹 처리된 이메일 반환)")
+    @PostMapping("/find-email")
+    public ResponseEntity<AuthResponseDto> findEmail(@Valid @RequestBody EmailFindRequestDto request) {
+        String maskedEmail = authService.findEmailByNickname(request.getNickname());
+        return ResponseEntity.ok(
+                AuthResponseDto.builder()
+                        .message("이메일 찾기 성공")
+                        .data(maskedEmail)
+                        .build()
+        );
+    }
+
+    @Operation(summary = "비밀번호 재설정 요청", description = "가입된 이메일로 임시 비밀번호를 발송합니다.")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<AuthResponseDto> forgotPassword(@Valid @RequestBody PasswordResetRequestDto request) {
+        authService.sendPasswordResetEmail(request.getEmail());
+        return ResponseEntity.ok(
+                AuthResponseDto.builder()
+                        .message("이메일로 임시 비밀번호가 발송되었습니다. 확인 후 로그인하여 비밀번호를 변경해주세요.")
+                        .build()
+        );
+    }
+
+    @Operation(summary = "비밀번호 변경 (로그인 상태)", description = "로그인된 사용자가 현재 비밀번호를 확인 후 새 비밀번호로 변경합니다.")
+    @SecurityRequirement(name = "jwtAuth")
+    @PatchMapping("/change-password")
+    public ResponseEntity<AuthResponseDto> changePassword(
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Valid @RequestBody PasswordChangeRequestDto request) {
+
+        Long userId = customUserDetails.getUser().getUserId();
+        authService.changePassword(userId, request.getCurrentPassword(), request.getNewPassword());
+
+        return ResponseEntity.ok(
+                AuthResponseDto.builder()
+                        .message("비밀번호가 성공적으로 변경되었습니다.")
+                        .build()
+        );
+    }
+
 }

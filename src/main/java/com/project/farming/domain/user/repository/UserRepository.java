@@ -18,6 +18,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByNicknameContainingOrderByNicknameAsc(String keyword);
     List<User> findByEmailContainingOrderByEmailAsc(String keyword);
 
+    // 이메일 찾기 기능을 위해 추가
+    Optional<User> findByNickname(String nickname);
+
     @Query("SELECT u FROM User u WHERE u.fcmToken IS NOT NULL AND TRIM(u.fcmToken) <> ''")
     List<User> findUsersByFcmToken();
 }

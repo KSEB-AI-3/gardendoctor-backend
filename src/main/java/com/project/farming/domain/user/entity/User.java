@@ -55,6 +55,11 @@ public class User {
     @JoinColumn(name = "profile_image_file_id")
     private ImageFile profileImageFile; // ImageFile 엔티티 참조
 
+    // 비밀번호 변경을 위한 메서드 추가
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
     public void updateProfileImageFile(ImageFile imageFile) {
         this.profileImageFile = imageFile;
     }
