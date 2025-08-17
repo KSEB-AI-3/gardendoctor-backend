@@ -58,6 +58,7 @@ application-local.properties
 
 # 환경 변수
 .env.development
+.env
 
 
 # Firebase Service Account Key
