@@ -20,7 +20,7 @@ public class FarmResponse {
     private String contact; // 신청방법
     private Double latitude; // 위도
     private Double longitude; // 경도
-    private boolean available; // 운영 여부
+    private Boolean available; // 운영 여부
     private LocalDate createdAt;
     private LocalDate updatedAt;
     private String farmImageUrl;

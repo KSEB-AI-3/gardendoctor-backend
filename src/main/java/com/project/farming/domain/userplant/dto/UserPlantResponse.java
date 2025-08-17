@@ -21,9 +21,9 @@ public class UserPlantResponse {
     private int waterIntervalDays; // 물 주는 간격(일 단위)
     private int pruneIntervalDays; // 가지치기 간격(일 단위)
     private int fertilizeIntervalDays; // 영양제 주는 간격(일 단위)
-    private boolean watered; // 물 주기 여부
-    private boolean pruned; // 가지치기 여부
-    private boolean fertilized; // 영양제 주기 여부
+    private Boolean watered; // 물 주기 여부
+    private Boolean pruned; // 가지치기 여부
+    private Boolean fertilized; // 영양제 주기 여부
 
     private String userPlantImageUrl;
 
