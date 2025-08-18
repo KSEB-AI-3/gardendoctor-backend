@@ -45,9 +45,6 @@
                         <div class="label-col">최종 수정일</div>
                         <div class="value-col">[[${notice.updatedAt}]]</div>
                     </div>
-                    <div class="mb-3 d-flex">
-                        <a th:href="@{/admin/notices/send/{noticeId}(noticeId=${notice.noticeId})}" class="btn btn-warning">알림 전송</a>
-                    </div>
                     <div th:if="${param.send_error}" class="alert alert-danger">
                         공지사항 알림 전송에 실패했습니다. 다시 한 번 시도해 주세요.
                     </div>
@@ -56,6 +53,7 @@
             <div class="mt-4">
                 <div class="d-flex justify-content-center gap-3">
                     <a th:href="@{/admin/notices}" class="btn btn-outline-secondary">목록</a>
+                    <a th:href="@{/admin/notices/send/{noticeId}(noticeId=${notice.noticeId})}" class="btn btn-warning">알림 발송</a>
                     <a th:href="@{/admin/notices/update?noticeId={noticeId}(noticeId=${notice.noticeId})}" class="btn btn-primary">수정</a>
                     <a th:href="@{/admin/notices/delete?noticeId={noticeId}(noticeId=${notice.noticeId})}" class="btn btn-danger">삭제</a>
                 </div>

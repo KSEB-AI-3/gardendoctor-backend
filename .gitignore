@@ -62,5 +62,4 @@ application-local.properties
 
 
 # Firebase Service Account Key
-# src/main/resources/firebase/ 폴더 아래의 모든 .json 파일을 무시합니다.
 farming-family-828cf-firebase-adminsdk.json
